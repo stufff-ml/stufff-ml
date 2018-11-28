@@ -12,9 +12,9 @@ type (
 		Event            string   `json:"event"`
 		EntityType       string   `json:"entity_type"`
 		EntityID         string   `json:"entity_id"`
-		TargetEntityType string   `json:"target_entity_type"`
-		TargetEntityID   string   `json:"target_entity_id"`
-		Properties       []string `datastore:",noindex" json:"properties"`
+		TargetEntityType string   `json:"target_entity_type,omitempty"`
+		TargetEntityID   string   `json:"target_entity_id,omitempty"`
+		Properties       []string `datastore:",noindex" json:"properties,omitempty"`
 		Timestamp        int64    `json:"timestamp"`
 		Created          int64    `json:"-"`
 	}
