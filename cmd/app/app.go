@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/stufff-ml/stufff-ml/internal/app"
+	"github.com/stufff-ml/stufff-ml/pkg/types"
 )
 
 func init() {
@@ -28,29 +29,10 @@ func init() {
 	router.GET("/seed", app.SeedEndpoint)
 	router.GET("/migrate", app.MigrateEndpoint)
 
-	/*
-		// API namespace
-		apiNS := router.Group(types.APIBaseURL)
-		apiNS.GET("/auth", app.AuthEndpoint)
-		apiNS.GET("/w", app.GetWorkspacesEndpoint)
-		apiNS.GET("/c/:team", app.GetChannelsEndpoint)
-		apiNS.GET("/m/:team/:channel", app.GetMessagesEndpoint)
-		// health checks
-		apiNS.GET("/ready", app.CheckReadyEndpoint)
-		apiNS.GET("/alive", app.CheckAliveEndpoint)
-
-		// group of internal endpoints for scheduling
-		scheduleNS := router.Group(types.SchedulerBaseURL)
-		scheduleNS.GET("/workspace", scheduler.UpdateWorkspaces)
-		scheduleNS.GET("/msgs", scheduler.CollectMessages)
-
-		// group of internal endpoints for jobs
-		jobsNS := router.Group(types.JobsBaseURL)
-		jobsNS.POST("/workspace", jobs.UpdateWorkspaceJob)
-		jobsNS.POST("/users", jobs.UpdateUsersJob)
-		jobsNS.POST("/channels", jobs.UpdateChannelsJob)
-		jobsNS.POST("/msgs", jobs.CollectMessagesJob)
-	*/
+	// namespace /api/1
+	apiNamespace := router.Group(types.APINamespace)
+	apiNamespace.GET("/events", app.GetEventEndpoint)
+	apiNamespace.POST("/events", app.PostEventEndpoint)
 
 	// ready, start taking requests
 	http.Handle("/", router)
