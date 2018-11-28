@@ -11,21 +11,6 @@ import (
 	"github.com/stufff-ml/stufff-ml/pkg/types"
 )
 
-type (
-	// EventsStore adds metadata to the Event struct needed for internal purposes
-	EventsStore struct {
-		AppDomain        string
-		Event            string
-		EntityType       string
-		EntityID         string
-		TargetEntityType string
-		TargetEntityID   string
-		Properties       []string
-		Timestamp        int64
-		Created          int64
-	}
-)
-
 // StoreEvent stores an event in the datastore
 func StoreEvent(ctx context.Context, appKey string, event *types.Event) error {
 

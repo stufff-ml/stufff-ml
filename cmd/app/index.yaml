@@ -22,4 +22,3 @@ indexes:
   - name: AppDomain
   - name: Timestamp
     direction: desc
-
