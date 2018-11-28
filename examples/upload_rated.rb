@@ -4,7 +4,8 @@ require 'json'
 require 'date'
 require 'csv'
 
-# ruby upload_rated.rb http://localhost:8080/api/1/events FFFFFFFF dataset_small.csv
+# ruby upload_rated.rb http://localhost:8080/api/1/events FFFFFFFF test.csv
+# ruby upload_rated.rb http://stufff-review.appspot.com/api/1/events FFFFFFFF test.csv
 
 endpoint = ARGV[0]
 token = ARGV[1]
@@ -16,7 +17,7 @@ uri = URI.parse endpoint
 http = Net::HTTP.new(uri.host, uri.port)
 http.use_ssl = false
 
-req = Net::HTTP::Post.new(uri.path, {'Content-Type' =>'application/json',  'Authorization' => token})
+req = Net::HTTP::Post.new(uri.path, {'Content-Type' =>'application/json',  'Authorization' => "Bearer #{token}"})
 
 CSV.foreach(filename) do |row|
   req.body =  {

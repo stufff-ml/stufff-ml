@@ -19,5 +19,5 @@ func AuthorizeRequest(c *gin.Context) (string, bool) {
 		return "", false
 	}
 
-	return parts[1], true
+	return strings.ToLower(parts[1]), true
 }
