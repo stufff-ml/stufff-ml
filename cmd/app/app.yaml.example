@@ -1,0 +1,14 @@
+service: default
+
+runtime: go
+api_version: go1
+
+handlers:
+- url: /.*
+  script: _go_app
+
+env_variables:
+  FOO_ID: 'AB9QVD'
+  FOO_CLIENT_ID: '3874424581.388387999'
+  FOO_CLIENT_SECRET: '965879d68276e684674a5055a80'
+  
