@@ -50,7 +50,11 @@ func RetrieveEvents(ctx context.Context, clientID, event string, start, end int6
 				q = datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID).Filter("Timestamp >=", start).Order("-Timestamp")
 			}
 		} else {
-			q = datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID).Filter("Timestamp <=", end).Order("-Timestamp")
+			if end > 0 {
+				q = datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID).Filter("Timestamp <=", end).Order("-Timestamp")
+			} else {
+				q = datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID).Order("-Timestamp")
+			}
 		}
 	} else {
 		if start > 0 {
@@ -60,7 +64,11 @@ func RetrieveEvents(ctx context.Context, clientID, event string, start, end int6
 				q = datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID).Filter("Event =", event).Filter("Timestamp >=", start).Order("-Timestamp")
 			}
 		} else {
-			q = datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID).Filter("Event =", event).Filter("Timestamp <=", end).Order("-Timestamp")
+			if end > 0 {
+				q = datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID).Filter("Event =", event).Filter("Timestamp <=", end).Order("-Timestamp")
+			} else {
+				q = datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID).Filter("Event =", event).Order("-Timestamp")
+			}
 		}
 	}
 
