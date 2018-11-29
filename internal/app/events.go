@@ -18,13 +18,11 @@ import (
 // GetEventEndpoint retrieves all raw events within a given time range
 func GetEventEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
-	appKey, ok := AuthorizeRequest(c)
+	clientID, ok := authenticate(ctx, c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
 		return
 	}
-
-	//fmt.Println(c.Request.Header["Authorization"])
 
 	// extract values
 	event := c.Query("event")
@@ -37,15 +35,15 @@ func GetEventEndpoint(c *gin.Context) {
 		end = 0
 	}
 
-	result, err := backend.RetrieveEvents(ctx, appKey, event, (int64)(start), (int64)(end))
-	StandardJSONResponse(ctx, c, "events.get", result, err)
+	result, err := backend.RetrieveEvents(ctx, clientID, event, (int64)(start), (int64)(end))
+	standardJSONResponse(ctx, c, "events.get", result, err)
 
 }
 
 // PostEventEndpoint is for testing only
 func PostEventEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
-	appKey, ok := AuthorizeRequest(c)
+	clientID, ok := authenticate(ctx, c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
 		return
@@ -61,9 +59,9 @@ func PostEventEndpoint(c *gin.Context) {
 			e.Timestamp = util.Timestamp()
 		}
 
-		err = backend.StoreEvent(ctx, appKey, &e)
+		err = backend.StoreEvent(ctx, clientID, &e)
 	}
 
-	StandardAPIResponse(ctx, c, "events.post", err)
+	standardAPIResponse(ctx, c, "events.post", err)
 
 }

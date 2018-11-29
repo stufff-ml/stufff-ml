@@ -4,8 +4,8 @@ require 'json'
 require 'date'
 require 'csv'
 
-# ruby upload_rated.rb http://localhost:8080/api/1/events FFFFFFFF test.csv
-# ruby upload_rated.rb http://stufff-review.appspot.com/api/1/events FFFFFFFF test.csv
+# ruby upload_rated.rb http://localhost:8080/api/1/events xoxo-ffffffff test.csv
+# ruby upload_rated.rb http://stufff-review.appspot.com/api/1/events xoxo-ffffffff test.csv
 
 endpoint = ARGV[0]
 token = ARGV[1]

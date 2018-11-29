@@ -12,11 +12,11 @@ import (
 )
 
 // StoreEvent stores an event in the datastore
-func StoreEvent(ctx context.Context, appKey string, event *types.Event) error {
+func StoreEvent(ctx context.Context, clientID string, event *types.Event) error {
 
 	// deep copy of the struct
 	e := EventsStore{
-		appKey,
+		clientID,
 		event.Event,
 		event.EntityType,
 		event.EntityID,
@@ -38,14 +38,30 @@ func StoreEvent(ctx context.Context, appKey string, event *types.Event) error {
 }
 
 // RetrieveEvents queries the events store for events of type event in the time range [start, end]
-func RetrieveEvents(ctx context.Context, appKey, event string, start, end int64) (*[]EventsStore, error) {
+func RetrieveEvents(ctx context.Context, clientID, event string, start, end int64) (*[]EventsStore, error) {
 	var events []EventsStore
 	var q *datastore.Query
 
 	if event == "" {
-		q = datastore.NewQuery(DatastoreEvents).Filter("AppDomain =", appKey).Order("-Timestamp")
+		if start > 0 {
+			if end > 0 {
+				q = datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID).Filter("Timestamp >=", start).Filter("Timestamp <=", end).Order("-Timestamp")
+			} else {
+				q = datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID).Filter("Timestamp >=", start).Order("-Timestamp")
+			}
+		} else {
+			q = datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID).Filter("Timestamp <=", end).Order("-Timestamp")
+		}
 	} else {
-		q = datastore.NewQuery(DatastoreEvents).Filter("AppDomain =", appKey).Filter("Event =", event).Order("-Timestamp")
+		if start > 0 {
+			if end > 0 {
+				q = datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID).Filter("Event =", event).Filter("Timestamp >=", start).Filter("Timestamp <=", end).Order("-Timestamp")
+			} else {
+				q = datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID).Filter("Event =", event).Filter("Timestamp >=", start).Order("-Timestamp")
+			}
+		} else {
+			q = datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID).Filter("Event =", event).Filter("Timestamp <=", end).Order("-Timestamp")
+		}
 	}
 
 	_, err := q.GetAll(ctx, &events)
