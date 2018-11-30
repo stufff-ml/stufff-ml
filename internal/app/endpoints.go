@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"google.golang.org/appengine"
 
-	"github.com/majordomusio/commons/pkg/gae/logger"
 	"github.com/majordomusio/commons/pkg/util"
 
 	"github.com/stufff-ml/stufff-ml/pkg/types"
@@ -80,7 +79,7 @@ func PostEventsEndpoint(c *gin.Context) {
 
 }
 
-// UploadPredictionsEndpoint is for uploading materialized predictions
+// PostPredictionsEndpoint is for uploading materialized predictions
 func PostPredictionsEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
 	clientID, ok := authenticate(ctx, c)
@@ -97,12 +96,13 @@ func PostPredictionsEndpoint(c *gin.Context) {
 
 			err = backend.StorePrediction(ctx, clientID, &prediction)
 			if err != nil {
-				logger.Error(ctx, "prediction.upload", err.Error())
+				standardAPIResponse(ctx, c, "predictions.post", err)
+				return
 			}
 		}
 	}
 
-	standardAPIResponse(ctx, c, "prediction.upload", err)
+	standardAPIResponse(ctx, c, "predictions.post", err)
 
 }
 
