@@ -10,6 +10,7 @@ require 'csv'
 endpoint = ARGV[0]
 token = ARGV[1]
 filename = ARGV[2]
+batch_size = 10
 
 # prepare the connection
 uri = URI.parse endpoint
@@ -19,21 +20,46 @@ http.use_ssl = false
 
 req = Net::HTTP::Post.new(uri.path, {'Content-Type' =>'application/json',  'Authorization' => "Bearer #{token}"})
 
+payload = []
+n = 0
+
 CSV.foreach(filename) do |row|
   if row[2] == "5.0"
-    req.body =  {
+    payload << {
       "event" => "buy",
       "entity_type" => "user",
       "entity_id" => row[0],
       "target_entity_type" => "item",
       "target_entity_id" => row[1],
       "timestamp" => row[3].to_i
-    }.to_json
-    
-    start = DateTime.now.strftime('%Q').to_i  
-    res = http.request(req)
-    stop = DateTime.now.strftime('%Q').to_i
+    }
+    n = n + 1
 
-    puts "Code: #{res.code} - #{stop - start} ms."
+    if n == batch_size
+      req.body =  payload.to_json
+    
+      start = DateTime.now.strftime('%Q').to_i  
+      res = http.request(req)
+      stop = DateTime.now.strftime('%Q').to_i
+
+      puts "Code: #{res.code} - #{stop - start} ms."
+
+      # reset
+      n = 0
+      payload = []
+    end
+
   end
+end
+
+# send the remaining records
+if payload.size > 0
+  req.body =  payload.to_json
+      
+  start = DateTime.now.strftime('%Q').to_i  
+  res = http.request(req)
+  stop = DateTime.now.strftime('%Q').to_i
+
+  puts "Code: #{res.code} - #{stop - start} ms."
+
 end
