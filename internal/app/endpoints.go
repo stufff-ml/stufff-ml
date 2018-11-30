@@ -42,7 +42,7 @@ func GetEventsEndpoint(c *gin.Context) {
 		pageSize = 0
 	}
 
-	result, err := backend.RetrieveEvents(ctx, clientID, event, (int64)(start), (int64)(end), page, pageSize)
+	result, err := backend.GetEvents(ctx, clientID, event, (int64)(start), (int64)(end), page, pageSize)
 	standardJSONResponse(ctx, c, "events.get", result, err)
 
 }
