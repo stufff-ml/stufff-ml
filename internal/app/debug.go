@@ -55,6 +55,20 @@ func SeedEndpoint(c *gin.Context) {
 		logger.Error(ctx, "api.seed", err.Error())
 	}
 
+	m := backend.Model{
+		ModelID:  "aaaa",
+		ClientID: cr.ClientID,
+		Domain:   "buy",
+		Revision: 1,
+		Event:    "buy",
+		Created:  util.Timestamp(),
+	}
+	key = backend.ModelKey(ctx, m.ModelID)
+	_, err = datastore.Put(ctx, key, &m)
+	if err != nil {
+		logger.Error(ctx, "api.seed", err.Error())
+	}
+
 	// all good
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }

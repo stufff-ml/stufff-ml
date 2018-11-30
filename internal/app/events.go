@@ -14,8 +14,8 @@ import (
 	"github.com/stufff-ml/stufff-ml/internal/backend"
 )
 
-// GetEventEndpoint retrieves all raw events within a given time range
-func GetEventEndpoint(c *gin.Context) {
+// GetEventsEndpoint retrieves all raw events within a given time range
+func GetEventsEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
 	clientID, ok := authenticate(ctx, c)
 	if !ok {
@@ -47,8 +47,8 @@ func GetEventEndpoint(c *gin.Context) {
 
 }
 
-// PostEventEndpoint is for testing only
-func PostEventEndpoint(c *gin.Context) {
+// PostEventsEndpoint is for testing only
+func PostEventsEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
 	clientID, ok := authenticate(ctx, c)
 	if !ok {

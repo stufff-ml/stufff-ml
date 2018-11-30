@@ -16,18 +16,15 @@ type (
 
 	// Prediction returns a set of predictions
 	Prediction struct {
-		Items []ItemScore `json:"items"`
+		EntityType string      `json:"entity_type" binding:"required"`
+		EntityID   string      `json:"entity_id" binding:"required"`
+		Domain     string      `json:"domain" binding:"required"`
+		Items      []ItemScore `json:"items"`
 	}
 
 	// ItemScore holds a single item recommendation and its score
 	ItemScore struct {
 		Item  string  `json:"item"`
 		Score float64 `json:"score"`
-	}
-
-	// PredictionRequest is used to request a prediction
-	PredictionRequest struct {
-		EntityType string `json:"entity_type" binding:"required"`
-		EntityID   string `json:"entity_id" binding:"required"`
 	}
 )

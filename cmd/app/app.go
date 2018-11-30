@@ -31,8 +31,9 @@ func init() {
 
 	// namespace /api/1
 	apiNamespace := router.Group(types.APINamespace)
-	apiNamespace.GET("/events", app.GetEventEndpoint)
-	apiNamespace.POST("/events", app.PostEventEndpoint)
+	apiNamespace.GET("/events", app.GetEventsEndpoint)
+	apiNamespace.POST("/events", app.PostEventsEndpoint)
+	apiNamespace.POST("/predict", app.SinglePredictionEndpoint)
 
 	// ready, start taking requests
 	http.Handle("/", router)

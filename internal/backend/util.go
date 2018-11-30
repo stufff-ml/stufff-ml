@@ -20,3 +20,13 @@ func ClientResourceKey(ctx context.Context, clientID string) *datastore.Key {
 func AuthorizationKey(ctx context.Context, token string) *datastore.Key {
 	return datastore.NewKey(ctx, DatastoreAuthorizations, token, 0, nil)
 }
+
+// PredictionKeyString returns the composite key string for a prediction
+func PredictionKeyString(clientID, modelID, revision, domain, entityID string) string {
+	return clientID + "." + modelID + "." + revision + "." + domain + "." + entityID
+}
+
+// PredictionKey key on collection PREDICTIONS
+func PredictionKey(ctx context.Context, k string) *datastore.Key {
+	return datastore.NewKey(ctx, DatastorePredictions, k, 0, nil)
+}

@@ -1,8 +1,12 @@
 package backend
 
+import "github.com/stufff-ml/stufff-ml/pkg/types"
+
 const (
 	// DatastoreEvents collection EVENTS
 	DatastoreEvents string = "EVENTS"
+	// DatastorePredictions collection PREDICTIONS
+	DatastorePredictions string = "PREDICTIONS"
 	// DatastoreModels collection MODELS
 	DatastoreModels string = "MODELS"
 	// DatastoreAuthorizations collection AUTHORIZATIONS
@@ -10,6 +14,8 @@ const (
 	// DatastoreClientResources collection CLIENT_RESOURCES
 	DatastoreClientResources string = "CLIENT_RESOURCES"
 
+	// ShortCacheDuration default time to keep stuff in memory
+	ShortCacheDuration string = "1m"
 	// DefaultCacheDuration default time to keep stuff in memory
 	DefaultCacheDuration string = "10m"
 )
@@ -30,10 +36,21 @@ type (
 		Created int64 `json:"-"`
 	}
 
+	// PredictionStore stores the materialized predictions for fast retrieval
+	PredictionStore struct {
+		ModelID  string            `json:"model_id"`
+		ClientID string            `json:"client_id"`
+		Domain   string            `json:"domain"`
+		Revision int               `json:"revision"`
+		EntityID string            `json:"entity_id"`
+		Items    []types.ItemScore `json:"items"`
+	}
+
 	// Model represents a training model
 	Model struct {
 		ModelID  string `json:"model_id"`
 		ClientID string `json:"client_id"`
+		Domain   string `json:"domain"`
 		Revision int    `json:"revision"`
 		Event    string `json:"event"`
 
