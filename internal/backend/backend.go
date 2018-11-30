@@ -14,57 +14,8 @@ import (
 	"github.com/stufff-ml/stufff-ml/pkg/types"
 )
 
-// StoreEvent stores an event in the datastore
-func StoreEvent(ctx context.Context, clientID string, event *types.Event) error {
-
-	// deep copy of the struct
-	e := EventsStore{
-		clientID,
-		event.Event,
-		event.EntityType,
-		event.EntityID,
-		event.TargetEntityType,
-		event.TargetEntityID,
-		event.Properties,
-		event.Timestamp,
-		util.Timestamp(),
-	}
-
-	key := datastore.NewIncompleteKey(ctx, DatastoreEvents, nil)
-	_, err := datastore.Put(ctx, key, &e)
-
-	if err != nil {
-		logger.Error(ctx, "backend.events.store", err.Error())
-	}
-
-	return err
-}
-
-// StorePrediction stores a materialized prediction in the datastore
-func StorePrediction(ctx context.Context, clientID string, prediction *types.Prediction) error {
-
-	model, err := GetModel(ctx, clientID, prediction.Domain)
-
-	ps := PredictionStore{
-		ClientID: clientID,
-		Domain:   prediction.Domain,
-		EntityID: prediction.EntityID,
-		Revision: model.Revision,
-		Items:    prediction.Items,
-		Created:  util.Timestamp(),
-	}
-
-	key := PredictionKey(ctx, PredictionKeyString(clientID, prediction.Domain, prediction.EntityID, string(model.Revision)))
-	_, err = datastore.Put(ctx, key, &ps)
-	if err != nil {
-		logger.Error(ctx, "backend.prediction.store", err.Error())
-	}
-
-	return err
-}
-
-// RetrieveEvents queries the events store for events of type event in the time range [start, end]
-func RetrieveEvents(ctx context.Context, clientID, event string, start, end int64, page, pageSize int) (*[]EventsStore, error) {
+// GetEvents queries the events store for events of type event in the time range [start, end]
+func GetEvents(ctx context.Context, clientID, event string, start, end int64, page, pageSize int) (*[]EventsStore, error) {
 	var events []EventsStore
 	var q *datastore.Query
 
@@ -103,7 +54,33 @@ func RetrieveEvents(ctx context.Context, clientID, event string, start, end int6
 	return &events, nil
 }
 
-// Prediction returns a prediction based on a specified model
+// StoreEvent stores an event in the datastore
+func StoreEvent(ctx context.Context, clientID string, event *types.Event) error {
+
+	// deep copy of the struct
+	e := EventsStore{
+		clientID,
+		event.Event,
+		event.EntityType,
+		event.EntityID,
+		event.TargetEntityType,
+		event.TargetEntityID,
+		event.Properties,
+		event.Timestamp,
+		util.Timestamp(),
+	}
+
+	key := datastore.NewIncompleteKey(ctx, DatastoreEvents, nil)
+	_, err := datastore.Put(ctx, key, &e)
+
+	if err != nil {
+		logger.Error(ctx, "backend.events.store", err.Error())
+	}
+
+	return err
+}
+
+// GetPrediction returns a prediction based on a specified model
 func GetPrediction(ctx context.Context, clientID string, req *types.Prediction) (*types.Prediction, error) {
 
 	// lookup the model definition
@@ -140,6 +117,30 @@ func GetPrediction(ctx context.Context, clientID string, req *types.Prediction) 
 	return &p, nil
 }
 
+// StorePrediction stores a materialized prediction in the datastore
+func StorePrediction(ctx context.Context, clientID string, prediction *types.Prediction) error {
+
+	model, err := GetModel(ctx, clientID, prediction.Domain)
+
+	ps := PredictionStore{
+		ClientID: clientID,
+		Domain:   prediction.Domain,
+		EntityID: prediction.EntityID,
+		Revision: model.Revision,
+		Items:    prediction.Items,
+		Created:  util.Timestamp(),
+	}
+
+	key := PredictionKey(ctx, PredictionKeyString(clientID, prediction.Domain, prediction.EntityID, string(model.Revision)))
+	_, err = datastore.Put(ctx, key, &ps)
+	if err != nil {
+		logger.Error(ctx, "backend.prediction.store", err.Error())
+	}
+
+	return err
+}
+
+// GetModel returns a model based on the clientID and domain
 func GetModel(ctx context.Context, clientID, domain string) (*Model, error) {
 	model := Model{}
 
