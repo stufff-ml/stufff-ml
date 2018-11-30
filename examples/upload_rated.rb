@@ -10,7 +10,7 @@ require 'csv'
 endpoint = ARGV[0]
 token = ARGV[1]
 filename = ARGV[2]
-batch_size = 10
+batch_size = 20
 
 # prepare the connection
 uri = URI.parse endpoint
