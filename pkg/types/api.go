@@ -16,10 +16,9 @@ type (
 
 	// Prediction returns a set of predictions
 	Prediction struct {
-		EntityType string      `json:"entity_type" binding:"required"`
-		EntityID   string      `json:"entity_id" binding:"required"`
-		Domain     string      `json:"domain" binding:"required"`
-		Items      []ItemScore `json:"items"`
+		EntityID string      `json:"entity_id" binding:"required"`
+		Domain   string      `json:"domain" binding:"required"`
+		Items    []ItemScore `json:"items"`
 	}
 
 	// ItemScore holds a single item recommendation and its score

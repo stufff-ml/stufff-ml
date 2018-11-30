@@ -114,12 +114,11 @@ func Prediction(ctx context.Context, clientID string, req *types.Prediction) (*t
 
 	// lookup the prediction
 	p := types.Prediction{
-		EntityID:   req.EntityID,
-		EntityType: req.EntityType,
-		Domain:     req.Domain,
+		EntityID: req.EntityID,
+		Domain:   req.Domain,
 	}
 
-	key = PredictionKeyString(clientID, model.ModelID, string(model.Revision), model.Domain, req.EntityID)
+	key = PredictionKeyString(clientID, model.Domain, req.EntityID, string(model.Revision))
 	_, err = memcache.Gob.Get(ctx, key, &p)
 
 	if err != nil {

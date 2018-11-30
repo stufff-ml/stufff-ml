@@ -56,14 +56,13 @@ func SeedEndpoint(c *gin.Context) {
 	}
 
 	m := backend.Model{
-		ModelID:  "aaaa",
 		ClientID: cr.ClientID,
 		Domain:   "buy",
 		Revision: 1,
 		Event:    "buy",
 		Created:  util.Timestamp(),
 	}
-	key = backend.ModelKey(ctx, m.ModelID)
+	key = backend.ModelKey(ctx, m.ClientID, m.Domain)
 	_, err = datastore.Put(ctx, key, &m)
 	if err != nil {
 		logger.Error(ctx, "api.seed", err.Error())

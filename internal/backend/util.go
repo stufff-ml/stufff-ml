@@ -7,8 +7,8 @@ import (
 )
 
 // ModelKey key on collection MODELS
-func ModelKey(ctx context.Context, modelID string) *datastore.Key {
-	return datastore.NewKey(ctx, DatastoreModels, modelID, 0, nil)
+func ModelKey(ctx context.Context, clientID, domain string) *datastore.Key {
+	return datastore.NewKey(ctx, DatastoreModels, clientID+"."+domain, 0, nil)
 }
 
 // ClientResourceKey key on collection CLIENT_RESOURCES
@@ -22,8 +22,8 @@ func AuthorizationKey(ctx context.Context, token string) *datastore.Key {
 }
 
 // PredictionKeyString returns the composite key string for a prediction
-func PredictionKeyString(clientID, modelID, revision, domain, entityID string) string {
-	return clientID + "." + modelID + "." + revision + "." + domain + "." + entityID
+func PredictionKeyString(clientID, domain, entityID, revision string) string {
+	return clientID + "." + domain + "." + entityID + "." + revision
 }
 
 // PredictionKey key on collection PREDICTIONS

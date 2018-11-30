@@ -38,17 +38,19 @@ type (
 
 	// PredictionStore stores the materialized predictions for fast retrieval
 	PredictionStore struct {
-		ModelID  string            `json:"model_id"`
-		ClientID string            `json:"client_id"`
-		Domain   string            `json:"domain"`
-		Revision int               `json:"revision"`
-		EntityID string            `json:"entity_id"`
-		Items    []types.ItemScore `json:"items"`
+		ClientID string `json:"client_id"`
+		Domain   string `json:"domain"`
+		EntityID string `json:"entity_id"`
+		Revision int    `json:"revision"`
+
+		Items []types.ItemScore `datastore:",noindex" json:"items"`
+
+		// internal metadata
+		Created int64 `json:"-"`
 	}
 
 	// Model represents a training model
 	Model struct {
-		ModelID  string `json:"model_id"`
 		ClientID string `json:"client_id"`
 		Domain   string `json:"domain"`
 		Revision int    `json:"revision"`
