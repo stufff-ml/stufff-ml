@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/stufff-ml/stufff-ml/internal/app"
-	"github.com/stufff-ml/stufff-ml/pkg/types"
 )
 
 func init() {
@@ -30,10 +29,14 @@ func init() {
 	router.GET("/migrate", app.MigrateEndpoint)
 
 	// namespace /api/1
-	apiNamespace := router.Group(types.APINamespace)
+	apiNamespace := router.Group("/api/1")
 	apiNamespace.GET("/events", app.GetEventsEndpoint)
 	apiNamespace.POST("/events", app.PostEventsEndpoint)
 	apiNamespace.POST("/predict", app.SinglePredictionEndpoint)
+
+	// namespace /bulk/1
+	bulkNamespace := router.Group("/bulk/1")
+	bulkNamespace.POST("/prediction", app.PostPredictionsEndpoint)
 
 	// ready, start taking requests
 	http.Handle("/", router)

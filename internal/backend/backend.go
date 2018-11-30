@@ -40,6 +40,29 @@ func StoreEvent(ctx context.Context, clientID string, event *types.Event) error 
 	return err
 }
 
+// StorePrediction stores a materialized prediction in the datastore
+func StorePrediction(ctx context.Context, clientID string, prediction *types.Prediction) error {
+
+	model, err := GetModel(ctx, clientID, prediction.Domain)
+
+	ps := PredictionStore{
+		ClientID: clientID,
+		Domain:   prediction.Domain,
+		EntityID: prediction.EntityID,
+		Revision: model.Revision,
+		Items:    prediction.Items,
+		Created:  util.Timestamp(),
+	}
+
+	key := PredictionKey(ctx, PredictionKeyString(clientID, prediction.Domain, prediction.EntityID, string(model.Revision)))
+	_, err = datastore.Put(ctx, key, &ps)
+	if err != nil {
+		logger.Error(ctx, "backend.prediction.store", err.Error())
+	}
+
+	return err
+}
+
 // RetrieveEvents queries the events store for events of type event in the time range [start, end]
 func RetrieveEvents(ctx context.Context, clientID, event string, start, end int64, page, pageSize int) (*[]EventsStore, error) {
 	var events []EventsStore
@@ -81,16 +104,52 @@ func RetrieveEvents(ctx context.Context, clientID, event string, start, end int6
 }
 
 // Prediction returns a prediction based on a specified model
-func Prediction(ctx context.Context, clientID string, req *types.Prediction) (*types.Prediction, error) {
+func GetPrediction(ctx context.Context, clientID string, req *types.Prediction) (*types.Prediction, error) {
+
+	// lookup the model definition
+	model, err := GetModel(ctx, clientID, req.Domain)
+	if err != nil {
+		return nil, err
+	}
+
+	// lookup the prediction
+	p := types.Prediction{
+		EntityID: req.EntityID,
+		Domain:   req.Domain,
+	}
+
+	key := PredictionKeyString(clientID, model.Domain, req.EntityID, string(model.Revision))
+	_, err = memcache.Gob.Get(ctx, key, &p)
+
+	if err != nil {
+
+		ps := PredictionStore{}
+		err = datastore.Get(ctx, PredictionKey(ctx, key), &ps)
+		if err == nil {
+
+			p.Items = ps.Items
+
+			cache := memcache.Item{}
+			cache.Key = key
+			cache.Object = &p
+			cache.Expiration, _ = time.ParseDuration(ShortCacheDuration)
+			memcache.Gob.Set(ctx, &cache)
+		}
+	}
+
+	return &p, nil
+}
+
+func GetModel(ctx context.Context, clientID, domain string) (*Model, error) {
 	model := Model{}
 
 	// lookup the model definition
-	key := "model." + strings.ToLower(clientID) + "." + req.Domain
+	key := "model." + strings.ToLower(clientID) + "." + domain
 	_, err := memcache.Gob.Get(ctx, key, &model)
 
 	if err != nil {
 		var models []Model
-		q := datastore.NewQuery(DatastoreModels).Filter("ClientID =", clientID).Filter("Domain =", req.Domain).Order("-Revision")
+		q := datastore.NewQuery(DatastoreModels).Filter("ClientID =", clientID).Filter("Domain =", domain).Order("-Revision")
 		_, err := q.GetAll(ctx, &models)
 		if err != nil {
 			return nil, err
@@ -112,30 +171,5 @@ func Prediction(ctx context.Context, clientID string, req *types.Prediction) (*t
 		}
 	}
 
-	// lookup the prediction
-	p := types.Prediction{
-		EntityID: req.EntityID,
-		Domain:   req.Domain,
-	}
-
-	key = PredictionKeyString(clientID, model.Domain, req.EntityID, string(model.Revision))
-	_, err = memcache.Gob.Get(ctx, key, &p)
-
-	if err != nil {
-
-		ps := PredictionStore{}
-		err = datastore.Get(ctx, PredictionKey(ctx, key), &ps)
-		if err == nil {
-
-			p.Items = ps.Items
-
-			cache := memcache.Item{}
-			cache.Key = key
-			cache.Object = &p
-			cache.Expiration, _ = time.ParseDuration(ShortCacheDuration)
-			memcache.Gob.Set(ctx, &cache)
-		}
-	}
-
-	return &p, nil
+	return &model, err
 }
