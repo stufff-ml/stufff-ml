@@ -35,6 +35,7 @@ type (
 		ModelID  string `json:"model_id"`
 		ClientID string `json:"client_id"`
 		Revision int    `json:"revision"`
+		Event    string `json:"event"`
 
 		// internal metadata
 		Created int64 `json:"-"`

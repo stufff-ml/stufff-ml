@@ -8,7 +8,7 @@ handlers:
   script: _go_app
 
 env_variables:
-  FOO_ID: 'AB9QVD'
-  FOO_CLIENT_ID: '3874424581.388387999'
-  FOO_CLIENT_SECRET: '965879d68276e684674a5055a80'
+  ADMIN_CLIENT_ID: '1234'
+  ADMIN_CLIENT_SECRET: '1234'
+  ADMIN_TOKEN: 'xoxo-fff'
   

@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"google.golang.org/appengine"
 
-	"github.com/majordomusio/commons/pkg/gae/logger"
 	"github.com/majordomusio/commons/pkg/util"
 
 	"github.com/stufff-ml/stufff-ml/pkg/types"
@@ -49,17 +48,19 @@ func PostEventEndpoint(c *gin.Context) {
 		return
 	}
 
-	var e types.Event
-	err := c.BindJSON(&e)
+	var events []types.Event
+	err := c.BindJSON(&events)
 	if err == nil {
 		// TODO better auditing
-		logger.Info(ctx, "events.post", "event=%s,type=%s", e.Event, e.EntityType)
+		//logger.Info(ctx, "events.post", "event=%s,type=%s", e.Event, e.EntityType)
 
-		if e.Timestamp == 0 {
-			e.Timestamp = util.Timestamp()
+		for i := range events {
+			e := events[i]
+			if e.Timestamp == 0 {
+				e.Timestamp = util.Timestamp()
+			}
+			err = backend.StoreEvent(ctx, clientID, &e)
 		}
-
-		err = backend.StoreEvent(ctx, clientID, &e)
 	}
 
 	standardAPIResponse(ctx, c, "events.post", err)
