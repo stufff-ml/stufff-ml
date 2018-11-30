@@ -15,6 +15,12 @@ indexes:
   - name: ClientID
   - name: Event
   - name: Timestamp
+
+- kind: EVENTS
+  properties:
+  - name: ClientID
+  - name: Event
+  - name: Timestamp
     direction: desc
 
 - kind: EVENTS

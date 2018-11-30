@@ -33,8 +33,16 @@ func GetEventEndpoint(c *gin.Context) {
 	if end < 0 {
 		end = 0
 	}
+	page, _ := strconv.Atoi(c.DefaultQuery("p", "1"))
+	if page < 0 {
+		page = 1
+	}
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("s", "0"))
+	if pageSize < 0 {
+		pageSize = 0
+	}
 
-	result, err := backend.RetrieveEvents(ctx, clientID, event, (int64)(start), (int64)(end))
+	result, err := backend.RetrieveEvents(ctx, clientID, event, (int64)(start), (int64)(end), page, pageSize)
 	standardJSONResponse(ctx, c, "events.get", result, err)
 
 }

@@ -38,9 +38,48 @@ func StoreEvent(ctx context.Context, clientID string, event *types.Event) error 
 }
 
 // RetrieveEvents queries the events store for events of type event in the time range [start, end]
-func RetrieveEvents(ctx context.Context, clientID, event string, start, end int64) (*[]EventsStore, error) {
+func RetrieveEvents(ctx context.Context, clientID, event string, start, end int64, page, pageSize int) (*[]EventsStore, error) {
 	var events []EventsStore
 	var q *datastore.Query
+
+	q = datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID)
+
+	// filter event type
+	if event != "" {
+		q = q.Filter("Event =", event)
+	}
+
+	// filter time range
+	if start > 0 {
+		q = q.Filter("Timestamp >=", start)
+	}
+
+	if end > 0 {
+		q = q.Filter("Timestamp <=", end)
+	}
+
+	// order and pageination
+	if pageSize > 0 {
+		q = q.Order("-Timestamp").Offset((page - 1) * pageSize).Limit(pageSize)
+	} else {
+		// WARNING: this returns everything !
+		q = q.Order("-Timestamp")
+	}
+
+	_, err := q.GetAll(ctx, &events)
+	if err != nil {
+		return nil, err
+	}
+
+	return &events, nil
+}
+
+// RetrieveEvents2 queries the events store for events of type event in the time range [start, end]
+func RetrieveEvents2(ctx context.Context, clientID, event string, start, end int64) (*[]EventsStore, error) {
+	var events []EventsStore
+	var q *datastore.Query
+
+	q = datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID)
 
 	if event == "" {
 		if start > 0 {
