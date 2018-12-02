@@ -32,7 +32,7 @@ func init() {
 	apiNamespace := router.Group("/api/1")
 	apiNamespace.GET("/events", app.GetEventsEndpoint)
 	apiNamespace.POST("/events", app.PostEventsEndpoint)
-	apiNamespace.POST("/predict", app.SinglePredictionEndpoint)
+	apiNamespace.POST("/predict", app.GetPredictionEndpoint)
 
 	// namespace /bulk/1
 	bulkNamespace := router.Group("/bulk/1")

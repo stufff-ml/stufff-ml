@@ -83,16 +83,17 @@ func StoreEvent(ctx context.Context, clientID string, event *types.Event) error 
 // GetPrediction returns a prediction based on a specified model
 func GetPrediction(ctx context.Context, clientID string, req *types.Prediction) (*types.Prediction, error) {
 
-	// lookup the model definition
-	model, err := GetModel(ctx, clientID, req.Domain)
-	if err != nil {
-		return nil, err
-	}
-
 	// lookup the prediction
 	p := types.Prediction{
 		EntityID: req.EntityID,
 		Domain:   req.Domain,
+		Items:    make([]types.ItemScore, 0),
+	}
+
+	// lookup the model definition
+	model, err := GetModel(ctx, clientID, req.Domain)
+	if err != nil {
+		return &p, err
 	}
 
 	key := PredictionKeyString(clientID, model.Domain, req.EntityID, string(model.Revision))
@@ -138,6 +139,28 @@ func StorePrediction(ctx context.Context, clientID string, prediction *types.Pre
 	}
 
 	return err
+}
+
+// CreateModel creates an initial model definition
+func CreateModel(ctx context.Context, clientID, domain, event string) (*Model, error) {
+
+	model := Model{
+		ClientID: clientID,
+		Domain:   domain,
+		Revision: 1,
+		Event:    event,
+		Created:  util.Timestamp(),
+	}
+
+	key := ModelKey(ctx, clientID, domain)
+	_, err := datastore.Put(ctx, key, &model)
+	if err != nil {
+		logger.Error(ctx, "backend.model.create", err.Error())
+		return nil, err
+	}
+
+	return &model, nil
+
 }
 
 // GetModel returns a model based on the clientID and domain
