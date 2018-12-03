@@ -18,6 +18,9 @@ const (
 	ShortCacheDuration string = "1m"
 	// DefaultCacheDuration default time to keep stuff in memory
 	DefaultCacheDuration string = "10m"
+
+	// ScopeAdmin grants access to all operations
+	ScopeAdmin string = "admin"
 )
 
 type (
@@ -72,6 +75,7 @@ type (
 	// Authorization represents access to a resource
 	Authorization struct {
 		ClientID string `json:"client_id"`
+		Scope    string `json:"scope"`
 		Token    string `json:"token"`
 		Revoked  bool   `json:"revoked"`
 		Expires  int64  `json:"expires"`

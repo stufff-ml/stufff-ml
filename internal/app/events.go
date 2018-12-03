@@ -21,8 +21,11 @@ import (
 // GetEventsEndpoint retrieves all raw events within a given time range
 func GetEventsEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
-	clientID, ok := authenticate(ctx, c)
-	if !ok {
+
+	// authenticate and authorize
+	token := backend.GetToken(ctx, c)
+	clientID, err := backend.AuthenticateAndAuthorize(ctx, "events_access", token)
+	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
 		return
 	}
@@ -54,14 +57,17 @@ func GetEventsEndpoint(c *gin.Context) {
 // PostEventsEndpoint is for testing only
 func PostEventsEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
-	clientID, ok := authenticate(ctx, c)
-	if !ok {
+
+	// authenticate and authorize
+	token := backend.GetToken(ctx, c)
+	clientID, err := backend.AuthenticateAndAuthorize(ctx, "events_access", token)
+	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
 		return
 	}
 
 	var events []types.Event
-	err := c.BindJSON(&events)
+	err = c.BindJSON(&events)
 	if err == nil {
 		// TODO better auditing
 		//logger.Info(ctx, "events.post", "event=%s,type=%s", e.Event, e.EntityType)

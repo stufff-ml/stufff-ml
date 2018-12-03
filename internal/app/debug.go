@@ -25,7 +25,7 @@ func MigrateEndpoint(c *gin.Context) {
 func SeedEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
 
-	err := backend.CreateClientAndAuthentication(ctx, "aaaa", "aaaa", "xoxo-ffffffff")
+	err := backend.CreateClientAndAuthentication(ctx, "aaaa", "aaaa", "admin", "xoxo-ffffffff")
 	if err != nil {
 		logger.Error(ctx, "api.seed", err.Error())
 	}

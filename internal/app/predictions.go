@@ -18,14 +18,17 @@ import (
 // PostPredictionsEndpoint is for uploading materialized predictions
 func PostPredictionsEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
-	clientID, ok := authenticate(ctx, c)
-	if !ok {
+
+	// authenticate and authorize
+	token := backend.GetToken(ctx, c)
+	clientID, err := backend.AuthenticateAndAuthorize(ctx, "events_access", token)
+	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
 		return
 	}
 
 	var predictions []types.Prediction
-	err := c.BindJSON(&predictions)
+	err = c.BindJSON(&predictions)
 	if err == nil {
 		for i := range predictions {
 			prediction := predictions[i]
@@ -45,14 +48,17 @@ func PostPredictionsEndpoint(c *gin.Context) {
 // GetPredictionEndpoint returns a single prediction
 func GetPredictionEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
-	clientID, ok := authenticate(ctx, c)
-	if !ok {
+
+	// authenticate and authorize
+	token := backend.GetToken(ctx, c)
+	clientID, err := backend.AuthenticateAndAuthorize(ctx, "events_access", token)
+	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
 		return
 	}
 
 	var p types.Prediction
-	err := c.BindJSON(&p)
+	err = c.BindJSON(&p)
 	if err == nil {
 		// TODO better auditing
 		//logger.Info(ctx, "events.post", "event=%s,type=%s", e.Event, e.EntityType)

@@ -9,7 +9,7 @@ import (
 	"google.golang.org/appengine/memcache"
 
 	"github.com/majordomusio/commons/pkg/gae/logger"
-	"github.com/ratchetcc/commons/pkg/util"
+	"github.com/majordomusio/commons/pkg/util"
 
 	"github.com/stufff-ml/stufff-ml/pkg/types"
 )
