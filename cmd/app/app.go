@@ -23,11 +23,6 @@ func init() {
 	router.GET("/", app.DefaultEndpoint)
 	router.GET("/robots.txt", app.RobotsEndpoint)
 
-	// FIXME: DEBUGGING ONLY
-	router.GET("/debug", app.DebugEndpoint)
-	router.GET("/seed", app.SeedEndpoint)
-	router.GET("/migrate", app.MigrateEndpoint)
-
 	// namespace /api/1
 	apiNamespace := router.Group("/api/1")
 	apiNamespace.GET("/events", app.GetEventsEndpoint)
@@ -37,6 +32,10 @@ func init() {
 	// namespace /bulk/1
 	bulkNamespace := router.Group("/bulk/1")
 	bulkNamespace.POST("/prediction", app.PostPredictionsEndpoint)
+
+	// namespace /_admin
+	adminNamespace := router.Group("_admin")
+	adminNamespace.GET("/init", app.InitEndpoint)
 
 	// ready, start taking requests
 	http.Handle("/", router)
