@@ -11,6 +11,7 @@ endpoint = ARGV[0]
 token = ARGV[1]
 filename = ARGV[2]
 batch_size = 100
+use_timestamp = false
 
 # prepare the connection
 uri = URI.parse endpoint
@@ -31,7 +32,7 @@ CSV.foreach(filename) do |row|
     "target_entity_type" => "item",
     "target_entity_id" => row[1],
     "properties" => [ row[2]],
-    "timestamp" => row[3].to_i
+    "timestamp" => use_timestamp ? row[3].to_i : Time.now.getutc.to_i
   }
   n = n + 1
 

@@ -10,5 +10,5 @@ handlers:
 env_variables:
   ADMIN_CLIENT_ID: '1234'
   ADMIN_CLIENT_SECRET: '1234'
-  ADMIN_TOKEN: 'xoxo-fff'
+  ADMIN_CLIENT_TOKEN: 'xoxo-fff'
   

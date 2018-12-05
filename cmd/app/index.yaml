@@ -27,13 +27,11 @@ indexes:
   properties:
   - name: ClientID
   - name: Event
-    direction: desc
 
 - kind: EVENTS
   properties:
   - name: ClientID
   - name: Timestamp
-    direction: desc
 
 - kind: MODELS
   properties:

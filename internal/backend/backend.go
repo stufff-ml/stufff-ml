@@ -28,7 +28,7 @@ func GetEvents(ctx context.Context, clientID, event string, start, end int64, pa
 
 	// filter time range
 	if start > 0 {
-		q = q.Filter("Timestamp >=", start)
+		q = q.Filter("Timestamp >", start)
 	}
 
 	if end > 0 {
@@ -37,10 +37,10 @@ func GetEvents(ctx context.Context, clientID, event string, start, end int64, pa
 
 	// order and pageination
 	if pageSize > 0 {
-		q = q.Order("-Timestamp").Offset((page - 1) * pageSize).Limit(pageSize)
+		q = q.Order("Timestamp").Offset((page - 1) * pageSize).Limit(pageSize)
 	} else {
 		// WARNING: this returns everything !
-		q = q.Order("-Timestamp")
+		q = q.Order("Timestamp")
 	}
 
 	_, err := q.GetAll(ctx, &events)

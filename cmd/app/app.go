@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/stufff-ml/stufff-ml/internal/app"
+	"github.com/stufff-ml/stufff-ml/pkg/types"
 )
 
 func init() {
@@ -30,8 +31,9 @@ func init() {
 	apiNamespace.POST("/predict", app.GetPredictionEndpoint)
 
 	// internal/integration namespace /_i/1
-	internalNamespace := router.Group("/_i/1")
+	internalNamespace := router.Group(types.InternalAPINamespace)
 	internalNamespace.POST("/prediction", app.PostPredictionsEndpoint)
+	internalNamespace.GET("/events", app.ExportEventsEndpoint)
 
 	// namespace /_admin
 	adminNamespace := router.Group("/_a")

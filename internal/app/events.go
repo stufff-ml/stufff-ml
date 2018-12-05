@@ -54,6 +54,30 @@ func GetEventsEndpoint(c *gin.Context) {
 
 }
 
+// ExportEventsEndpoint retrieves all raw events within a given time range
+func ExportEventsEndpoint(c *gin.Context) {
+	ctx := appengine.NewContext(c.Request)
+
+	// authenticate and authorize
+	token := backend.GetToken(ctx, c)
+	_, err := backend.AuthenticateAndAuthorize(ctx, "backend_access", token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
+		return
+	}
+
+	// extract values
+	clientID := c.Query("id")
+	start, _ := strconv.Atoi(c.DefaultQuery("start", "0"))
+	if start < 0 {
+		start = 0
+	}
+
+	result, err := backend.GetEvents(ctx, clientID, "", (int64)(start), 0, 0, 0)
+	standardJSONResponse(ctx, c, "events.export", result, err)
+
+}
+
 // PostEventsEndpoint is for testing only
 func PostEventsEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)

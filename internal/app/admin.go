@@ -27,12 +27,7 @@ func InitEndpoint(c *gin.Context) {
 		return
 	}
 
-	err := backend.CreateClientAndAuthentication(ctx, os.Getenv("ADMIN_CLIENT_ID"), os.Getenv("ADMIN_CLIENT_SECRET"), "admin", os.Getenv("ADMIN_TOKEN"))
-	if err != nil {
-		logger.Error(ctx, "api.seed", err.Error())
-	}
-
-	_, err = backend.CreateModel(ctx, os.Getenv("ADMIN_CLIENT_ID"), "default", "buy")
+	err := backend.CreateClientAndAuthentication(ctx, os.Getenv("ADMIN_CLIENT_ID"), os.Getenv("ADMIN_CLIENT_SECRET"), "admin", os.Getenv("ADMIN_CLIENT_TOKEN"))
 	if err != nil {
 		logger.Error(ctx, "api.seed", err.Error())
 	}
