@@ -57,9 +57,8 @@ func ExportEvents(clientID string, start int64, endpoint, token, dataHome string
 func eventToString(e *backend.EventsStore) string {
 	if len(e.Properties) == 0 {
 		return fmt.Sprintf("%s,%s,%s,%s,%s,%d", e.Event, e.EntityType, e.EntityID, e.TargetEntityType, e.TargetEntityID, e.Timestamp)
-	} else {
-		return fmt.Sprintf("%s,%s,%s,%s,%s,%d,%s", e.Event, e.EntityType, e.EntityID, e.TargetEntityType, e.TargetEntityID, e.Timestamp, strings.Join(e.Properties, ","))
 	}
+	return fmt.Sprintf("%s,%s,%s,%s,%s,%d,%s", e.Event, e.EntityType, e.EntityID, e.TargetEntityType, e.TargetEntityID, e.Timestamp, strings.Join(e.Properties, ","))
 }
 
 func check(e error) {
