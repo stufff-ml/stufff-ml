@@ -142,13 +142,12 @@ func StorePrediction(ctx context.Context, clientID string, prediction *types.Pre
 }
 
 // CreateModel creates an initial model definition
-func CreateModel(ctx context.Context, clientID, domain, event string) (*Model, error) {
+func CreateModel(ctx context.Context, clientID, domain string) (*Model, error) {
 
 	model := Model{
 		ClientID: clientID,
 		Domain:   domain,
 		Revision: 1,
-		Event:    event,
 		Created:  util.Timestamp(),
 	}
 

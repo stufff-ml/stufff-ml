@@ -57,7 +57,6 @@ type (
 		ClientID string `json:"client_id"`
 		Domain   string `json:"domain"`
 		Revision int    `json:"revision"`
-		Event    string `json:"event"`
 
 		// internal metadata
 		Created int64 `json:"-"`

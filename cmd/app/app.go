@@ -29,12 +29,12 @@ func init() {
 	apiNamespace.POST("/events", app.PostEventsEndpoint)
 	apiNamespace.POST("/predict", app.GetPredictionEndpoint)
 
-	// namespace /bulk/1
-	bulkNamespace := router.Group("/bulk/1")
-	bulkNamespace.POST("/prediction", app.PostPredictionsEndpoint)
+	// internal/integration namespace /_i/1
+	internalNamespace := router.Group("/_i/1")
+	internalNamespace.POST("/prediction", app.PostPredictionsEndpoint)
 
 	// namespace /_admin
-	adminNamespace := router.Group("_admin")
+	adminNamespace := router.Group("/_a")
 	adminNamespace.GET("/init", app.InitEndpoint)
 
 	// ready, start taking requests
