@@ -19,6 +19,9 @@ const (
 	// DefaultCacheDuration default time to keep stuff in memory
 	DefaultCacheDuration string = "10m"
 
+	// BackgroundWorkQueue is the default background job queue
+	BackgroundWorkQueue string = "background-work"
+
 	// ScopeAdmin grants access to all operations
 	ScopeAdmin string = "admin"
 )
@@ -57,6 +60,11 @@ type (
 		ClientID string `json:"client_id"`
 		Domain   string `json:"domain"`
 		Revision int    `json:"revision"`
+
+		// Metadata
+		TrainingSchedule int   `json:"training_schedule"`
+		NextSchedule     int64 `json:"next_schedule"`
+		LastExported     int64 `json:"exported"`
 
 		// internal metadata
 		Created int64 `json:"-"`

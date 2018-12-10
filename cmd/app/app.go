@@ -30,13 +30,19 @@ func init() {
 	apiNamespace.POST("/events", app.PostEventsEndpoint)
 	apiNamespace.POST("/predict", app.GetPredictionEndpoint)
 
-	// internal/integration namespace /_i/1
-	internalNamespace := router.Group(types.InternalAPINamespace)
-	internalNamespace.POST("/prediction", app.PostPredictionsEndpoint)
-	internalNamespace.GET("/events", app.ExportEventsEndpoint)
+	// internal/integration namespace /_i/1/batch
+	batchNamespace := router.Group(types.BatchBaseURL)
+	batchNamespace.POST("/predictions", app.PostPredictionsEndpoint)
+	//batchNamespace.GET("/events", app.ExportEventsEndpoint)
+
+	schedulerNamespace := router.Group(types.SchedulerBaseURL)
+	schedulerNamespace.GET("/export", app.ScheduleEventsExportEndpoint)
+
+	jobsNamespace := router.Group(types.JobsBaseURL)
+	jobsNamespace.POST("/export", app.ExportEventsJobEndpoint)
 
 	// namespace /_admin
-	adminNamespace := router.Group("/_a")
+	adminNamespace := router.Group(types.AdminBaseURL)
 	adminNamespace.GET("/init", app.InitEndpoint)
 
 	// ready, start taking requests

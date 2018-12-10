@@ -7,5 +7,12 @@ const (
 	// DefaultEndpoint is the API endpoint
 	DefaultEndpoint string = "https://stufff-review.appspot.com"
 
-	InternalAPINamespace string = "/_i/1"
+	// BatchBaseURL is the prefix for all batch import/export endpoints
+	BatchBaseURL string = "/_i/1/batch"
+	// SchedulerBaseURL is the prefix for all scheduller/cron tasks
+	SchedulerBaseURL string = "/_i/1/scheduler"
+	// JobsBaseURL is the prefix for all scheduled jobs
+	JobsBaseURL string = "/_i/1/jobs"
+	// AdminBaseURL is the prefix for all admin endpoints
+	AdminBaseURL string = "/_a"
 )

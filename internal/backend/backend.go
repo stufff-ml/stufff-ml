@@ -145,10 +145,13 @@ func StorePrediction(ctx context.Context, clientID string, prediction *types.Pre
 func CreateModel(ctx context.Context, clientID, domain string) (*Model, error) {
 
 	model := Model{
-		ClientID: clientID,
-		Domain:   domain,
-		Revision: 1,
-		Created:  util.Timestamp(),
+		ClientID:         clientID,
+		Domain:           domain,
+		Revision:         1,
+		TrainingSchedule: 5,
+		NextSchedule:     0,
+		LastExported:     0,
+		Created:          util.Timestamp(),
 	}
 
 	key := ModelKey(ctx, clientID, domain)
@@ -167,7 +170,7 @@ func GetModel(ctx context.Context, clientID, domain string) (*Model, error) {
 	model := Model{}
 
 	// lookup the model definition
-	key := "model." + strings.ToLower(clientID) + "." + domain
+	key := "model." + strings.ToLower(clientID+"."+domain)
 	_, err := memcache.Gob.Get(ctx, key, &model)
 
 	if err != nil {
@@ -194,5 +197,30 @@ func GetModel(ctx context.Context, clientID, domain string) (*Model, error) {
 		}
 	}
 
-	return &model, err
+	return &model, nil
+}
+
+// MarkModelExported writes a model record back to the datastore with updated metadata
+func MarkModelExported(ctx context.Context, clientID, domain string, exported, next int64) error {
+	var model Model
+
+	key := ModelKey(ctx, clientID, domain)
+	err := datastore.Get(ctx, key, &model)
+	if err != nil {
+		return err
+	}
+
+	model.LastExported = exported
+	model.NextSchedule = next
+
+	_, err = datastore.Put(ctx, key, &model)
+	if err != nil {
+		return err
+	}
+
+	// invalidate the cache
+	ckey := "model." + strings.ToLower(clientID+"."+domain)
+	err = memcache.Delete(ctx, ckey)
+
+	return err
 }
