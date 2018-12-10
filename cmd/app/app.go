@@ -33,7 +33,6 @@ func init() {
 	// internal/integration namespace /_i/1/batch
 	batchNamespace := router.Group(types.BatchBaseURL)
 	batchNamespace.POST("/predictions", app.PostPredictionsEndpoint)
-	//batchNamespace.GET("/events", app.ExportEventsEndpoint)
 
 	schedulerNamespace := router.Group(types.SchedulerBaseURL)
 	schedulerNamespace.GET("/export", app.ScheduleEventsExportEndpoint)
