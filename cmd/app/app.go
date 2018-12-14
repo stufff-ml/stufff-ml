@@ -38,7 +38,7 @@ func init() {
 	schedulerNamespace.GET("/export", app.ScheduleEventsExportEndpoint)
 
 	jobsNamespace := router.Group(types.JobsBaseURL)
-	jobsNamespace.POST("/export", app.ExportEventsJobEndpoint)
+	jobsNamespace.POST("/export", app.JobEventsExportEndpoint)
 
 	// namespace /_admin
 	adminNamespace := router.Group(types.AdminBaseURL)

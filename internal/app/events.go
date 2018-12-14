@@ -7,6 +7,9 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+
+	"cloud.google.com/go/storage"
+
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 
@@ -121,8 +124,8 @@ func ScheduleEventsExportEndpoint(c *gin.Context) {
 	standardAPIResponse(ctx, c, "scheduler.events.export", err)
 }
 
-// ExportEventsJobEndpoint retrieves all raw events within a given time range
-func ExportEventsJobEndpoint(c *gin.Context) {
+// JobEventsExportEndpoint retrieves all raw events within a given time range
+func JobEventsExportEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
 
 	// extract values
@@ -157,9 +160,32 @@ func ExportEventsJobEndpoint(c *gin.Context) {
 		return
 	}
 
-	for i := range *events {
-		logger.Info(ctx, "jobs.events.export", "event=%s, type=%s", (*events)[i].Event, (*events)[i].EntityType)
+	// only if there is something to export
+	if len(*events) > 0 {
+
+		// create a file on Cloud Storage
+		client, err := storage.NewClient(ctx)
+		if err != nil {
+			logger.Warning(ctx, "jobs.events.export", "Could not write to storage %s", modelID)
+			standardAPIResponse(ctx, c, "jobs.events.export", err)
+			return
+		}
+
+		bucket := client.Bucket("exports.stufff.review")
+
+		fileName := fmt.Sprintf("%s/%s_%d.csv", modelID, modelID, end)
+		w := bucket.Object(fileName).NewWriter(ctx)
+		w.ContentType = "text/plain"
+		defer w.Close()
+
+		// write to file
+		for i := range *events {
+			w.Write([]byte(backend.EventStoreToString(&(*events)[i]) + "\n"))
+		}
+
+		logger.Info(ctx, "jobs.events.export", "Wrote %d events to file '%s'", len(*events), fileName)
 	}
+
 	// uodate metadata
 	model.LastExported = end
 	model.NextSchedule = util.IncT(end, model.TrainingSchedule)
