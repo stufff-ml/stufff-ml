@@ -39,6 +39,7 @@ func init() {
 
 	jobsNamespace := router.Group(types.JobsBaseURL)
 	jobsNamespace.POST("/export", app.JobEventsExportEndpoint)
+	jobsNamespace.POST("/merge", app.JobEventsMergeEndpoint)
 
 	// namespace /_admin
 	adminNamespace := router.Group(types.AdminBaseURL)

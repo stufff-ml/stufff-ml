@@ -6,6 +6,7 @@ require 'csv'
 
 # ruby upload_buy.rb http://localhost:8080/api/1/events xoxo-ffffffff test.csv
 # ruby upload_buy.rb http://stufff-review.appspot.com/api/1/events xoxo-ffffffff test.csv
+# ruby upload_buy.rb http://stufff-review.appspot.com/api/1/events xoxo-foobarxx test.csv
 
 endpoint = ARGV[0]
 token = ARGV[1]

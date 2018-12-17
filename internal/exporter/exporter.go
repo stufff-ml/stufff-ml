@@ -8,15 +8,13 @@ import (
 	"strings"
 
 	"github.com/stufff-ml/stufff-ml/internal/backend"
-
-	"github.com/stufff-ml/stufff-ml/pkg/types"
 )
 
 // ExportEvents queries events from the datastore and writes a csv file
 func ExportEvents(clientID string, start int64, endpoint, token, dataHome string) error {
 
 	bearer := fmt.Sprintf("Bearer %s", token)
-	uri := fmt.Sprintf("%s%s/events?id=%s&start=%d", endpoint, types.InternalAPINamespace, clientID, start)
+	uri := fmt.Sprintf("%s%s/events?id=%s&start=%d", endpoint, "types.InternalAPINamespace", clientID, start)
 	filePathAndName := fmt.Sprintf("%s/%s_%d.csv", dataHome, clientID, start)
 
 	// Create a new request using http

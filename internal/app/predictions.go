@@ -18,6 +18,7 @@ import (
 // PostPredictionsEndpoint is for uploading materialized predictions
 func PostPredictionsEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
+	topic := "predictions.post"
 
 	// authenticate and authorize
 	token := backend.GetToken(ctx, c)
@@ -35,19 +36,20 @@ func PostPredictionsEndpoint(c *gin.Context) {
 
 			err = backend.StorePrediction(ctx, clientID, &prediction)
 			if err != nil {
-				standardAPIResponse(ctx, c, "predictions.post", err)
+				standardAPIResponse(ctx, c, topic, err)
 				return
 			}
 		}
 	}
 
-	standardAPIResponse(ctx, c, "predictions.post", err)
+	standardAPIResponse(ctx, c, topic, err)
 
 }
 
 // GetPredictionEndpoint returns a single prediction
 func GetPredictionEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
+	topic := "prediction.single"
 
 	// authenticate and authorize
 	token := backend.GetToken(ctx, c)
@@ -61,16 +63,15 @@ func GetPredictionEndpoint(c *gin.Context) {
 	err = c.BindJSON(&p)
 	if err == nil {
 		// TODO better auditing
-		//logger.Info(ctx, "events.post", "event=%s,type=%s", e.Event, e.EntityType)
 
 		result, err := backend.GetPrediction(ctx, clientID, &p)
 		if len(result.Items) == 0 {
 			result.Items = make([]types.ItemScore, 0)
 		}
 
-		standardJSONResponse(ctx, c, "prediction.single", result, err)
+		standardJSONResponse(ctx, c, topic, result, err)
 	} else {
-		standardAPIResponse(ctx, c, "prediction.single", err)
+		standardAPIResponse(ctx, c, topic, err)
 	}
 
 }

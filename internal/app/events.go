@@ -4,11 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
-
-	"cloud.google.com/go/storage"
 
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
@@ -29,6 +26,7 @@ import (
 // GetEventsEndpoint retrieves all raw events within a given time range
 func GetEventsEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
+	topic := "events.get"
 
 	// authenticate and authorize
 	token := backend.GetToken(ctx, c)
@@ -58,13 +56,13 @@ func GetEventsEndpoint(c *gin.Context) {
 	}
 
 	result, err := backend.GetEvents(ctx, clientID, event, (int64)(start), (int64)(end), page, pageSize)
-	standardJSONResponse(ctx, c, "events.get", result, err)
-
+	standardJSONResponse(ctx, c, topic, result, err)
 }
 
 // PostEventsEndpoint is for testing only
 func PostEventsEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
+	topic := "events.post"
 
 	// authenticate and authorize
 	token := backend.GetToken(ctx, c)
@@ -78,7 +76,6 @@ func PostEventsEndpoint(c *gin.Context) {
 	err = c.BindJSON(&events)
 	if err == nil {
 		// TODO better auditing
-		//logger.Info(ctx, "events.post", "event=%s,type=%s", e.Event, e.EntityType)
 
 		for i := range events {
 			e := events[i]
@@ -87,19 +84,21 @@ func PostEventsEndpoint(c *gin.Context) {
 			}
 			err = backend.StoreEvent(ctx, clientID, &e)
 			if err != nil {
-				standardAPIResponse(ctx, c, "events.post", err)
+				standardAPIResponse(ctx, c, topic, err)
 				return
 			}
 		}
+
+		logger.Info(ctx, topic, "Received %d event(s).", len(events))
 	}
 
-	standardAPIResponse(ctx, c, "events.post", err)
-
+	standardAPIResponse(ctx, c, topic, err)
 }
 
 // ScheduleEventsExportEndpoint retrieves all raw events within a given time range
 func ScheduleEventsExportEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
+	topic := "scheduler.events.export"
 
 	var models []backend.Model
 	now := util.Timestamp()
@@ -113,90 +112,59 @@ func ScheduleEventsExportEndpoint(c *gin.Context) {
 				modelID := fmt.Sprintf("%s.%s", models[i].ClientID, models[i].Domain)
 				jobs.ScheduleJob(ctx, backend.BackgroundWorkQueue, types.JobsBaseURL+"/export?id="+modelID)
 
-				logger.Info(ctx, "scheduler.events.export", "Scheduled export of model '%s'.", modelID)
+				logger.Info(ctx, topic, "Scheduled export of new events. Model='%s'", modelID)
 			}
 		} else {
-			logger.Info(ctx, "scheduler.events.export", "Nothing scheduled.")
+			logger.Info(ctx, topic, "Nothing scheduled")
 		}
 	}
 
 	// logging and standard response
-	standardAPIResponse(ctx, c, "scheduler.events.export", err)
+	standardAPIResponse(ctx, c, topic, err)
 }
 
 // JobEventsExportEndpoint retrieves all raw events within a given time range
 func JobEventsExportEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
+	topic := "jobs.events.export"
 
 	// extract values
 	modelID := c.Query("id")
 	if modelID == "" {
-		logger.Warning(ctx, "jobs.events.export", "Empty model ID")
-		standardAPIResponse(ctx, c, "jobs.events.export", nil)
+		logger.Warning(ctx, topic, "Empty model ID")
+		standardAPIResponse(ctx, c, topic, nil)
 		return
 	}
 
-	p := strings.Split(modelID, ".")
-	clientID := p[0]
-	domain := p[1]
+	err := backend.ExportEvents(ctx, modelID)
+	if err == nil {
+		logger.Info(ctx, topic, "Exported new data. Model='%s'", modelID)
 
-	model, err := backend.GetModel(ctx, clientID, domain)
-	if err != nil {
-		logger.Warning(ctx, "jobs.events.export", "Model not found: %s", modelID)
-		standardAPIResponse(ctx, c, "jobs.events.export", err)
+		// now schedule merging of files
+		jobs.ScheduleJob(ctx, backend.BackgroundWorkQueue, types.JobsBaseURL+"/merge?id="+modelID)
+		logger.Info(ctx, topic, "Scheduled merge of new events. Model='%s'", modelID)
+	}
+
+	standardAPIResponse(ctx, c, topic, err)
+}
+
+// JobEventsMergeEndpoint retrieves all exported events files and merges them into one file
+func JobEventsMergeEndpoint(c *gin.Context) {
+	ctx := appengine.NewContext(c.Request)
+	topic := "jobs.events.merge"
+
+	// extract values
+	modelID := c.Query("id")
+	if modelID == "" {
+		logger.Warning(ctx, topic, "Empty model ID")
+		standardAPIResponse(ctx, c, topic, nil)
 		return
 	}
 
-	// timerange: ]start, end]
-	start := model.LastExported
-	end := util.Timestamp()
-
-	// export stuff
-	var events *[]backend.EventsStore
-	events, err = backend.GetEvents(ctx, model.ClientID, "", start, end, 0, 0)
-	if err != nil {
-		logger.Warning(ctx, "jobs.events.export", "Could not query events for model: %s", modelID)
-		standardAPIResponse(ctx, c, "jobs.events.export", err)
-		return
+	err := backend.MergeEvents(ctx, modelID)
+	if err == nil {
+		logger.Info(ctx, topic, "Merged events data. Model='%s'", modelID)
 	}
 
-	// only if there is something to export
-	if len(*events) > 0 {
-
-		// create a file on Cloud Storage
-		client, err := storage.NewClient(ctx)
-		if err != nil {
-			logger.Warning(ctx, "jobs.events.export", "Could not write to storage %s", modelID)
-			standardAPIResponse(ctx, c, "jobs.events.export", err)
-			return
-		}
-
-		bucket := client.Bucket("exports.stufff.review")
-
-		fileName := fmt.Sprintf("%s/%s_%d.csv", modelID, modelID, end)
-		w := bucket.Object(fileName).NewWriter(ctx)
-		w.ContentType = "text/plain"
-		defer w.Close()
-
-		// write to file
-		for i := range *events {
-			w.Write([]byte(backend.EventStoreToString(&(*events)[i]) + "\n"))
-		}
-
-		logger.Info(ctx, "jobs.events.export", "Wrote %d events to file '%s'", len(*events), fileName)
-	}
-
-	// uodate metadata
-	model.LastExported = end
-	model.NextSchedule = util.IncT(end, model.TrainingSchedule)
-	err = backend.MarkModelExported(ctx, clientID, domain, end, util.IncT(end, model.TrainingSchedule))
-	if err != nil {
-		logger.Warning(ctx, "jobs.events.export", "Could not update metadata for model: %s", modelID)
-		standardAPIResponse(ctx, c, "jobs.events.export", err)
-		return
-	}
-
-	// logging and standard response
-	logger.Info(ctx, "jobs.events.export", "Exported data for models '%s'", modelID)
-	standardAPIResponse(ctx, c, "jobs.events.export", nil)
+	standardAPIResponse(ctx, c, topic, err)
 }

@@ -14,3 +14,7 @@
 # Secrets
 app.yaml
 stuff.md
+
+# virtualenv
+model/stufff-ml
+.vscode
