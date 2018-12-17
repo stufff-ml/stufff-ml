@@ -22,7 +22,7 @@ func InitEndpoint(c *gin.Context) {
 		return
 	}
 
-	if token != os.Getenv("ADMIN_TOKEN") {
+	if token != os.Getenv("ADMIN_CLIENT_TOKEN") {
 		c.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
 		return
 	}
