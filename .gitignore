@@ -15,6 +15,7 @@
 app.yaml
 stuff.md
 
-# virtualenv
+# temp files and virtualenv
 model/stufff-ml
+model/upload.csv
 .vscode

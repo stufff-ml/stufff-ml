@@ -136,11 +136,17 @@ func JobEventsExportEndpoint(c *gin.Context) {
 		return
 	}
 
-	err := backend.ExportEvents(ctx, modelID)
-	if err == nil {
+	n, err := backend.ExportEvents(ctx, modelID)
+	if err != nil {
+		logger.Warning(ctx, topic, "Issues exporting new data. Model='%s'. Err=%s", modelID, err.Error())
+		standardAPIResponse(ctx, c, topic, err)
+		return
+	}
+
+	if n > 0 {
 		logger.Info(ctx, topic, "Exported new data. Model='%s'", modelID)
 
-		// now schedule merging of files
+		// schedule merging of files
 		jobs.ScheduleJob(ctx, backend.BackgroundWorkQueue, types.JobsBaseURL+"/merge?id="+modelID)
 		logger.Info(ctx, topic, "Scheduled merge of new events. Model='%s'", modelID)
 	}

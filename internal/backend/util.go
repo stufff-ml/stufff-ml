@@ -37,7 +37,7 @@ func PredictionKey(ctx context.Context, k string) *datastore.Key {
 // EventStoreToString returns an events as a comma separared string
 func EventStoreToString(e *EventsStore) string {
 	if len(e.Properties) == 0 {
-		return fmt.Sprintf("%s,%s,%s,%s,%s,%d", e.Event, e.EntityType, e.EntityID, e.TargetEntityType, e.TargetEntityID, e.Timestamp)
+		return fmt.Sprintf("%s,%s,%s,%s,%s,%d,''", e.Event, e.EntityType, e.EntityID, e.TargetEntityType, e.TargetEntityID, e.Timestamp)
 	}
-	return fmt.Sprintf("%s,%s,%s,%s,%s,%d,%s", e.Event, e.EntityType, e.EntityID, e.TargetEntityType, e.TargetEntityID, e.Timestamp, strings.Join(e.Properties, ","))
+	return fmt.Sprintf("%s,%s,%s,%s,%s,%d,'%s'", e.Event, e.EntityType, e.EntityID, e.TargetEntityType, e.TargetEntityID, e.Timestamp, strings.Join(e.Properties, ","))
 }

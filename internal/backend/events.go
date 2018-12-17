@@ -84,7 +84,7 @@ func StoreEvent(ctx context.Context, clientID string, event *types.Event) error 
 }
 
 // ExportEvents exports events in time range ]start, end] and writes it to a csv file on Cloud Storage
-func ExportEvents(ctx context.Context, modelID string) error {
+func ExportEvents(ctx context.Context, modelID string) (int, error) {
 	topic := "backend.events.export"
 
 	p := strings.Split(modelID, ".")
@@ -94,7 +94,7 @@ func ExportEvents(ctx context.Context, modelID string) error {
 	model, err := GetModel(ctx, clientID, domain)
 	if err != nil {
 		logger.Warning(ctx, topic, "Model not found. Model='%s'", modelID)
-		return err
+		return -1, err
 	}
 
 	// timerange: ]start, end]
@@ -103,10 +103,10 @@ func ExportEvents(ctx context.Context, modelID string) error {
 
 	// export stuff
 	var events *[]EventsStore
-	events, err = GetEvents(ctx, model.ClientID, "", start, end, 0, 0)
+	events, err = GetEvents(ctx, model.ClientID, "", start, end, 1, 10000)
 	if err != nil {
 		logger.Warning(ctx, topic, "Could not query events. Model='%s'", modelID)
-		return err
+		return -1, err
 	}
 
 	// only if there is something to export
@@ -116,7 +116,7 @@ func ExportEvents(ctx context.Context, modelID string) error {
 		client, err := storage.NewClient(ctx)
 		if err != nil {
 			logger.Warning(ctx, topic, "Could not access storage. Model='%s'", modelID)
-			return err
+			return -1, err
 		}
 
 		bucket := client.Bucket("exports.stufff.review")
@@ -140,10 +140,10 @@ func ExportEvents(ctx context.Context, modelID string) error {
 	err = MarkModelExported(ctx, clientID, domain, end, util.IncT(end, model.TrainingSchedule))
 	if err != nil {
 		logger.Warning(ctx, topic, "Could not update metadata. Model='%s'", modelID)
-		return err
+		return -1, err
 	}
 
-	return nil
+	return len(*events), nil
 }
 
 // MergeEvents merges all exported events for a model in a single file
@@ -180,6 +180,8 @@ func MergeEvents(ctx context.Context, modelID string) error {
 	// query blobs
 	q := storage.Query{Prefix: modelID}
 	it := client.Bucket("exports.stufff.review").Objects(ctx, &q)
+	var size int64
+	var numFiles int
 
 	// merge the result
 	for {
@@ -205,8 +207,10 @@ func MergeEvents(ctx context.Context, modelID string) error {
 			return err
 		}
 
-		logger.Info(ctx, topic, "Merged export '%s'. %d bytes copied.", obj.Name, b)
+		numFiles++
+		size += b
 	}
 
+	logger.Info(ctx, topic, "Merged %d files. Size=%d bytes", numFiles, size)
 	return nil
 }
