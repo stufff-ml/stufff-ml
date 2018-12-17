@@ -32,6 +32,9 @@ func InitEndpoint(c *gin.Context) {
 		logger.Error(ctx, "api.seed", err.Error())
 	}
 
+	// FIXME: remove this later !
+	backend.CreateModel(ctx, os.Getenv("ADMIN_CLIENT_ID"), "default")
+
 	// all good
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
