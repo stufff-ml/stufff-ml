@@ -97,42 +97,55 @@ func ExportEvents(ctx context.Context, modelID string) (int, error) {
 		return -1, err
 	}
 
-	// timerange: ]start, end]
-	start := model.LastExported
-	end := util.Timestamp()
-
-	// export stuff
-	var events *[]EventsStore
-	events, err = GetEvents(ctx, model.ClientID, "", start, end, 1, 10000)
+	// create a blob on Cloud Storage
+	client, err := storage.NewClient(ctx)
 	if err != nil {
-		logger.Warning(ctx, topic, "Could not query events. Model='%s'", modelID)
+		logger.Warning(ctx, topic, "Can not access storage. Model='%s'", modelID)
 		return -1, err
 	}
 
-	// only if there is something to export
-	if len(*events) > 0 {
+	// timerange for the export: ]start, end]
+	start := model.LastExported
+	end := util.Timestamp()
 
-		// create a blob on Cloud Storage
-		client, err := storage.NewClient(ctx)
+	fileName := fmt.Sprintf("%s/%s_%d.csv", modelID, modelID, end)
+	bucket := client.Bucket("exports.stufff.review")
+
+	w := bucket.Object(fileName).NewWriter(ctx)
+	w.ContentType = "text/plain"
+	defer w.Close()
+
+	// export stuff
+	var events *[]EventsStore
+
+	page := 1
+	batchSize := 2000
+	numEvents := 0
+
+	for {
+		events, err = GetEvents(ctx, model.ClientID, "", start, end, page, batchSize)
 		if err != nil {
-			logger.Warning(ctx, topic, "Could not access storage. Model='%s'", modelID)
+			logger.Warning(ctx, topic, "Could not query events. Model='%s'", modelID)
 			return -1, err
 		}
 
-		bucket := client.Bucket("exports.stufff.review")
-
-		fileName := fmt.Sprintf("%s/%s_%d.csv", modelID, modelID, end)
-		w := bucket.Object(fileName).NewWriter(ctx)
-		w.ContentType = "text/plain"
-		defer w.Close()
-
-		// write to file
-		for i := range *events {
-			w.Write([]byte(EventStoreToString(&(*events)[i]) + "\n"))
+		// only if there is something to export
+		if len(*events) > 0 {
+			for i := range *events {
+				w.Write([]byte(EventStoreToString(&(*events)[i]) + "\n"))
+			}
+			numEvents += len(*events)
 		}
 
-		logger.Info(ctx, topic, "Exported %d events. File='%s'", len(*events), fileName)
+		// done?
+		if len(*events) < batchSize {
+			break
+		}
+
+		page++
 	}
+
+	logger.Info(ctx, topic, "Exported %d events. File='%s'", numEvents, fileName)
 
 	// uodate metadata
 	model.LastExported = end
@@ -143,7 +156,7 @@ func ExportEvents(ctx context.Context, modelID string) (int, error) {
 		return -1, err
 	}
 
-	return len(*events), nil
+	return numEvents, nil
 }
 
 // MergeEvents merges all exported events for a model in a single file

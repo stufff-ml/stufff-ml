@@ -16,7 +16,7 @@ rev = '2'
 
 # calculate based on ENV
 source_name = model_id + '/' + model_id + '_' + rev + '.csv'
-target_name = model_id + '/' + model_id + '_rec_' + rev + '.csv'
+target_name = model_id + '/' + model_id + '_model_' + rev + '.csv'
 
 # access to Cloud Storage
 client = storage.Client()
