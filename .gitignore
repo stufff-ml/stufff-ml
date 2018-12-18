@@ -13,6 +13,7 @@
 
 # Secrets
 app.yaml
+cron.yaml
 stuff.md
 
 # temp files and virtualenv

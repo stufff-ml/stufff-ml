@@ -119,7 +119,7 @@ func ExportEvents(ctx context.Context, modelID string) (int, error) {
 	var events *[]EventsStore
 
 	page := 1
-	batchSize := 2000
+	batchSize := 1000
 	numEvents := 0
 
 	for {

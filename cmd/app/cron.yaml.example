@@ -1,5 +1,5 @@
 cron:
 - description: "Periodically export events data"
   url: /_i/1/scheduler/export
-  schedule: every 5 minutes
+  schedule: every 60 minutes
   target: default
