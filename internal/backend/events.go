@@ -17,7 +17,7 @@ import (
 )
 
 // GetEvents queries the events store for events of type event in the time range [start, end]
-func GetEvents(ctx context.Context, clientID, event string, start, end int64, page, pageSize int) (*[]EventsStore, error) {
+func GetEvents(ctx context.Context, clientID, event string, start, end int64, page, limit int) (*[]EventsStore, error) {
 	var events []EventsStore
 	var q *datastore.Query
 
@@ -38,8 +38,10 @@ func GetEvents(ctx context.Context, clientID, event string, start, end int64, pa
 	}
 
 	// order and pageination
-	if pageSize > 0 {
-		q = q.Order("Timestamp").Offset((page - 1) * pageSize).Limit(pageSize)
+	if page == 0 && limit > 0 {
+		q = q.Order("Timestamp").Limit(limit)
+	} else if page > 0 && limit > 0 {
+		q = q.Order("Timestamp").Offset((page - 1) * limit).Limit(limit)
 	} else {
 		// WARNING: this returns everything !
 		q = q.Order("Timestamp")
@@ -119,26 +121,28 @@ func ExportEvents(ctx context.Context, modelID string) (int, error) {
 	var events *[]EventsStore
 
 	page := 1
-	batchSize := 1000
+	limit := 1000
 	numEvents := 0
 
 	for {
-		events, err = GetEvents(ctx, model.ClientID, "", start, end, page, batchSize)
+		events, err = GetEvents(ctx, model.ClientID, "", start, end, page, limit)
 		if err != nil {
 			logger.Warning(ctx, topic, "Could not query events. Model='%s'", modelID)
 			return -1, err
 		}
 
+		res := len(*events)
+
 		// only if there is something to export
-		if len(*events) > 0 {
+		if res > 0 {
 			for i := range *events {
 				w.Write([]byte(EventStoreToString(&(*events)[i]) + "\n"))
 			}
-			numEvents += len(*events)
+			numEvents += res
 		}
 
 		// done?
-		if len(*events) < batchSize {
+		if res < limit {
 			break
 		}
 
@@ -161,6 +165,9 @@ func ExportEvents(ctx context.Context, modelID string) (int, error) {
 
 // MergeEvents merges all exported events for a model in a single file
 func MergeEvents(ctx context.Context, modelID string) error {
+	var size int64
+	var numFiles int
+
 	topic := "backend.events.merge"
 
 	p := strings.Split(modelID, ".")
@@ -181,8 +188,8 @@ func MergeEvents(ctx context.Context, modelID string) error {
 	}
 
 	// buckets
-	sourceBucket := client.Bucket("exports.stufff.review")
-	targetBucket := client.Bucket("models.stufff.review")
+	sourceBucket := client.Bucket(types.DefaultExportBucket)
+	targetBucket := client.Bucket(types.DefaultModelsBucket)
 
 	// new target blob
 	fileName := fmt.Sprintf("%s/%s_%d.csv", modelID, modelID, model.Revision)
@@ -192,9 +199,7 @@ func MergeEvents(ctx context.Context, modelID string) error {
 
 	// query blobs
 	q := storage.Query{Prefix: modelID}
-	it := client.Bucket("exports.stufff.review").Objects(ctx, &q)
-	var size int64
-	var numFiles int
+	it := sourceBucket.Objects(ctx, &q)
 
 	// merge the result
 	for {

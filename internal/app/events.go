@@ -104,8 +104,8 @@ func ScheduleEventsExportEndpoint(c *gin.Context) {
 	now := util.Timestamp()
 
 	q := datastore.NewQuery(backend.DatastoreModels).Filter("NextSchedule <=", now)
-
 	_, err := q.GetAll(ctx, &models)
+
 	if err == nil {
 		if len(models) > 0 {
 			for i := range models {

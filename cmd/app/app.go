@@ -25,18 +25,20 @@ func init() {
 	router.GET("/robots.txt", app.RobotsEndpoint)
 
 	// namespace /api/1
-	apiNamespace := router.Group("/api/1")
+	apiNamespace := router.Group(types.APIBaseURL)
 	apiNamespace.GET("/events", app.GetEventsEndpoint)
 	apiNamespace.POST("/events", app.PostEventsEndpoint)
 	apiNamespace.POST("/predict", app.GetPredictionEndpoint)
 
-	// internal/integration namespace /_i/1/batch
+	// /_i/1/batch
 	batchNamespace := router.Group(types.BatchBaseURL)
 	batchNamespace.POST("/predictions", app.PostPredictionsEndpoint)
 
+	// /_i/1/scheduler
 	schedulerNamespace := router.Group(types.SchedulerBaseURL)
 	schedulerNamespace.GET("/export", app.ScheduleEventsExportEndpoint)
 
+	// /_i/1/jobs
 	jobsNamespace := router.Group(types.JobsBaseURL)
 	jobsNamespace.POST("/export", app.JobEventsExportEndpoint)
 	jobsNamespace.POST("/merge", app.JobEventsMergeEndpoint)
