@@ -18,6 +18,8 @@ import (
 
 // GetEvents queries the events store for events of type event in the time range [start, end]
 func GetEvents(ctx context.Context, clientID, event string, start, end int64, page, limit int) (*[]EventsStore, error) {
+	topic := "backend.events.get"
+
 	var events []EventsStore
 	var q *datastore.Query
 
@@ -55,6 +57,8 @@ func GetEvents(ctx context.Context, clientID, event string, start, end int64, pa
 	if len(events) == 0 {
 		events = make([]EventsStore, 0)
 	}
+
+	logger.Info(ctx, topic, "ClientID=%s,time[%d,%d],page=%d,limit=%d. Found=%d", clientID, start, end, page, limit, len(events))
 	return &events, nil
 }
 
@@ -109,44 +113,36 @@ func ExportEvents(ctx context.Context, modelID string) (int, error) {
 	// timerange for the export: ]start, end]
 	start := model.LastExported
 	end := util.Timestamp()
+	numEvents := 0
 
-	fileName := fmt.Sprintf("%s/%s_%d.csv", modelID, modelID, end)
+	// monster query
+	q := datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID).Filter("Timestamp >", start).Limit(ExportBatchSize).Order("Timestamp")
+
+	fileName := fmt.Sprintf("%s/%s_%d.csv", modelID, modelID, start)
 	bucket := client.Bucket("exports.stufff.review")
 
 	w := bucket.Object(fileName).NewWriter(ctx)
 	w.ContentType = "text/plain"
 	defer w.Close()
 
-	// export stuff
-	var events *[]EventsStore
-
-	page := 1
-	limit := 1000
-	numEvents := 0
-
+	// run the query and write the blob
+	iter := q.Run(ctx)
 	for {
-		events, err = GetEvents(ctx, model.ClientID, "", start, end, page, limit)
+		var e EventsStore
+
+		_, err := iter.Next(&e)
+		if err == datastore.Done {
+			break
+		}
 		if err != nil {
 			logger.Warning(ctx, topic, "Could not query events. Model='%s'", modelID)
 			return -1, err
 		}
 
-		res := len(*events)
+		w.Write([]byte(e.ToCSV()))
 
-		// only if there is something to export
-		if res > 0 {
-			for i := range *events {
-				w.Write([]byte(EventStoreToString(&(*events)[i]) + "\n"))
-			}
-			numEvents += res
-		}
-
-		// done?
-		if res < limit {
-			break
-		}
-
-		page++
+		end = e.Timestamp
+		numEvents++
 	}
 
 	logger.Info(ctx, topic, "Exported %d events. File='%s'", numEvents, fileName)
@@ -154,7 +150,7 @@ func ExportEvents(ctx context.Context, modelID string) (int, error) {
 	// uodate metadata
 	model.LastExported = end
 	model.NextSchedule = util.IncT(end, model.TrainingSchedule)
-	err = MarkModelExported(ctx, clientID, domain, end, util.IncT(end, model.TrainingSchedule))
+	err = MarkModelExported(ctx, clientID, domain, end, util.IncT(util.Timestamp(), model.ExportSchedule))
 	if err != nil {
 		logger.Warning(ctx, topic, "Could not update metadata. Model='%s'", modelID)
 		return -1, err

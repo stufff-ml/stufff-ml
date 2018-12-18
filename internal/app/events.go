@@ -46,16 +46,16 @@ func GetEventsEndpoint(c *gin.Context) {
 	if end < 0 {
 		end = 0
 	}
-	page, _ := strconv.Atoi(c.DefaultQuery("p", "1"))
+	page, _ := strconv.Atoi(c.DefaultQuery("p", "0"))
 	if page < 0 {
 		page = 1
 	}
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("s", "0"))
-	if pageSize < 0 {
-		pageSize = 0
+	limit, _ := strconv.Atoi(c.DefaultQuery("l", "100"))
+	if limit < 0 {
+		limit = 0
 	}
 
-	result, err := backend.GetEvents(ctx, clientID, event, (int64)(start), (int64)(end), page, pageSize)
+	result, err := backend.GetEvents(ctx, clientID, event, (int64)(start), (int64)(end), page, limit)
 	standardJSONResponse(ctx, c, topic, result, err)
 }
 
@@ -144,11 +144,17 @@ func JobEventsExportEndpoint(c *gin.Context) {
 	}
 
 	if n > 0 {
-		logger.Info(ctx, topic, "Exported new data. Model='%s'", modelID)
+		logger.Info(ctx, topic, "Exported new events. Model='%s'", modelID)
 
-		// schedule merging of files
-		jobs.ScheduleJob(ctx, backend.BackgroundWorkQueue, types.JobsBaseURL+"/merge?id="+modelID)
-		logger.Info(ctx, topic, "Scheduled merge of new events. Model='%s'", modelID)
+		if n == backend.ExportBatchSize {
+			// more to export, do not merge yet
+			jobs.ScheduleJob(ctx, backend.BackgroundWorkQueue, types.JobsBaseURL+"/export?id="+modelID)
+			logger.Info(ctx, topic, "Re-scheduled export of new events. Model='%s'", modelID)
+		} else {
+			// schedule merging of files
+			jobs.ScheduleJob(ctx, backend.BackgroundWorkQueue, types.JobsBaseURL+"/merge?id="+modelID)
+			logger.Info(ctx, topic, "Scheduled merge of new events. Model='%s'", modelID)
+		}
 	}
 
 	standardAPIResponse(ctx, c, topic, err)

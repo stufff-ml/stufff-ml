@@ -34,10 +34,9 @@ func PredictionKey(ctx context.Context, k string) *datastore.Key {
 	return datastore.NewKey(ctx, DatastorePredictions, k, 0, nil)
 }
 
-// EventStoreToString returns an events as a comma separared string
-func EventStoreToString(e *EventsStore) string {
+func (e *EventsStore) ToCSV() string {
 	if len(e.Properties) == 0 {
-		return fmt.Sprintf("%s,%s,%s,%s,%s,%d,''", e.Event, e.EntityType, e.EntityID, e.TargetEntityType, e.TargetEntityID, e.Timestamp)
+		return fmt.Sprintf("%s,%s,%s,%s,%s,%d,''\n", e.Event, e.EntityType, e.EntityID, e.TargetEntityType, e.TargetEntityID, e.Timestamp)
 	}
-	return fmt.Sprintf("%s,%s,%s,%s,%s,%d,'%s'", e.Event, e.EntityType, e.EntityID, e.TargetEntityType, e.TargetEntityID, e.Timestamp, strings.Join(e.Properties, ","))
+	return fmt.Sprintf("%s,%s,%s,%s,%s,%d,'%s'\n", e.Event, e.EntityType, e.EntityID, e.TargetEntityType, e.TargetEntityID, e.Timestamp, strings.Join(e.Properties, ","))
 }

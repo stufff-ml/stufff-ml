@@ -24,6 +24,9 @@ const (
 
 	// ScopeAdmin grants access to all operations
 	ScopeAdmin string = "admin"
+
+	// ExportBatchSize is the number of events to be exported in one job
+	ExportBatchSize int = 10001
 )
 
 type (
@@ -62,6 +65,7 @@ type (
 		Revision int    `json:"revision"`
 
 		// Metadata
+		ExportSchedule   int   `json:"export_schedule"`
 		TrainingSchedule int   `json:"training_schedule"`
 		NextSchedule     int64 `json:"next_schedule"`
 		LastExported     int64 `json:"exported"`
