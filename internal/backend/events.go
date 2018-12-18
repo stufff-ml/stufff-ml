@@ -145,6 +145,12 @@ func ExportEvents(ctx context.Context, modelID string) (int, error) {
 		numEvents++
 	}
 
+	if numEvents == 0 {
+		// cleanup since nothing was exported
+		w.Close()
+		bucket.Object(fileName).Delete(ctx)
+	}
+
 	logger.Info(ctx, topic, "Exported %d events. File='%s'", numEvents, fileName)
 
 	// uodate metadata
