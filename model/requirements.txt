@@ -1,6 +1,0 @@
-six==1.10.0
-requests==2.18.*
-numpy==1.14.*
-turicreate==5.2.*
-google-cloud-storage==1.13.1
-tensorflow==1.12.0
