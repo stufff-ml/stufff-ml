@@ -34,6 +34,7 @@ func PredictionKey(ctx context.Context, k string) *datastore.Key {
 	return datastore.NewKey(ctx, DatastorePredictions, k, 0, nil)
 }
 
+// ToCSV creates a csv strin gfrom the struct
 func (e *EventsStore) ToCSV() string {
 	if len(e.Properties) == 0 {
 		return fmt.Sprintf("%s,%s,%s,%s,%s,%d,''\n", e.Event, e.EntityType, e.EntityID, e.TargetEntityType, e.TargetEntityID, e.Timestamp)
