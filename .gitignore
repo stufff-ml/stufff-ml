@@ -16,7 +16,5 @@ app.yaml
 cron.yaml
 stuff.md
 
-# temp files and virtualenv
-model/stufff-ml
-model/upload.csv
+# IDE files
 .vscode

@@ -118,7 +118,7 @@ func ExportEvents(ctx context.Context, modelID string) (int, error) {
 	// monster query
 	q := datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID).Filter("Timestamp >", start).Limit(ExportBatchSize).Order("Timestamp")
 
-	fileName := fmt.Sprintf("%s/%s_%d.csv", modelID, modelID, start)
+	fileName := fmt.Sprintf("%s/%s.%d.csv", modelID, modelID, start)
 	bucket := client.Bucket("exports.stufff.review")
 
 	w := bucket.Object(fileName).NewWriter(ctx)
@@ -194,7 +194,7 @@ func MergeEvents(ctx context.Context, modelID string) error {
 	targetBucket := client.Bucket(types.DefaultModelsBucket)
 
 	// new target blob
-	fileName := fmt.Sprintf("%s/%s_%d.csv", modelID, modelID, model.Revision)
+	fileName := fmt.Sprintf("%s/%s.%d.csv", modelID, modelID, model.Revision)
 	w := targetBucket.Object(fileName).NewWriter(ctx)
 	w.ContentType = "text/plain"
 	defer w.Close()
