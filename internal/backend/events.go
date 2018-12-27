@@ -17,10 +17,10 @@ import (
 )
 
 // GetEvents queries the events store for events of type event in the time range [start, end]
-func GetEvents(ctx context.Context, clientID, event string, start, end int64, page, limit int) (*[]EventsStore, error) {
+func GetEvents(ctx context.Context, clientID, event string, start, end int64, page, limit int) (*[]EventDS, error) {
 	topic := "backend.events.get"
 
-	var events []EventsStore
+	var events []EventDS
 	var q *datastore.Query
 
 	q = datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID)
@@ -55,7 +55,7 @@ func GetEvents(ctx context.Context, clientID, event string, start, end int64, pa
 	}
 
 	if len(events) == 0 {
-		events = make([]EventsStore, 0)
+		events = make([]EventDS, 0)
 	}
 
 	logger.Info(ctx, topic, "ClientID=%s,time[%d,%d],page=%d,limit=%d. Found=%d", clientID, start, end, page, limit, len(events))
@@ -67,7 +67,7 @@ func StoreEvent(ctx context.Context, clientID string, event *types.Event) error 
 	topic := "backend.events.store"
 
 	// deep copy of the struct
-	e := EventsStore{
+	e := EventDS{
 		clientID,
 		event.Event,
 		event.EntityType,
@@ -128,7 +128,7 @@ func ExportEvents(ctx context.Context, modelID string) (int, error) {
 	// run the query and write the blob
 	iter := q.Run(ctx)
 	for {
-		var e EventsStore
+		var e EventDS
 
 		_, err := iter.Next(&e)
 		if err == datastore.Done {

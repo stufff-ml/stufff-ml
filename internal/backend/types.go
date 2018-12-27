@@ -30,8 +30,8 @@ const (
 )
 
 type (
-	// EventsStore adds metadata to the Event struct needed for internal purposes
-	EventsStore struct {
+	// EventDS adds metadata to the Event struct needed for internal purposes
+	EventDS struct {
 		ClientID         string   `json:"-"`
 		Event            string   `json:"event"`
 		EntityType       string   `json:"entity_type"`
@@ -45,8 +45,8 @@ type (
 		Created int64 `json:"-"`
 	}
 
-	// PredictionStore stores the materialized predictions for fast retrieval
-	PredictionStore struct {
+	// PredictionDS stores the materialized predictions for fast retrieval
+	PredictionDS struct {
 		ClientID string `json:"client_id"`
 		Domain   string `json:"domain"`
 		EntityID string `json:"entity_id"`
@@ -58,8 +58,8 @@ type (
 		Created int64 `json:"-"`
 	}
 
-	// Model represents a training model
-	Model struct {
+	// ModelDS represents a training model
+	ModelDS struct {
 		ClientID string `json:"client_id"`
 		Domain   string `json:"domain"`
 		Revision int    `json:"revision"`
@@ -74,8 +74,8 @@ type (
 		Created int64 `json:"-"`
 	}
 
-	// ClientResource represents an entity owning a client i.e. external source
-	ClientResource struct {
+	// ClientResourceDS represents an entity owning a client i.e. external source
+	ClientResourceDS struct {
 		ClientID     string `json:"client_id"`
 		ClientSecret string `json:"client_secret"`
 
@@ -84,7 +84,7 @@ type (
 	}
 
 	// Authorization represents access to a resource
-	Authorization struct {
+	AuthorizationDS struct {
 		ClientID string `json:"client_id"`
 		Scope    string `json:"scope"`
 		Token    string `json:"token"`

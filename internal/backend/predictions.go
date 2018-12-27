@@ -34,7 +34,7 @@ func GetPrediction(ctx context.Context, clientID string, req *types.Prediction) 
 
 	if err != nil {
 
-		ps := PredictionStore{}
+		ps := PredictionDS{}
 		err = datastore.Get(ctx, PredictionKey(ctx, key), &ps)
 		if err == nil {
 
@@ -56,7 +56,7 @@ func StorePrediction(ctx context.Context, clientID string, prediction *types.Pre
 
 	model, err := GetModel(ctx, clientID, prediction.Domain)
 
-	ps := PredictionStore{
+	ps := PredictionDS{
 		ClientID: clientID,
 		Domain:   prediction.Domain,
 		EntityID: prediction.EntityID,

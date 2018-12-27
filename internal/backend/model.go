@@ -13,9 +13,9 @@ import (
 )
 
 // CreateModel creates an initial model definition
-func CreateModel(ctx context.Context, clientID, domain string) (*Model, error) {
+func CreateModel(ctx context.Context, clientID, domain string) (*ModelDS, error) {
 
-	model := Model{
+	model := ModelDS{
 		ClientID:         clientID,
 		Domain:           domain,
 		Revision:         1,
@@ -38,15 +38,15 @@ func CreateModel(ctx context.Context, clientID, domain string) (*Model, error) {
 }
 
 // GetModel returns a model based on the clientID and domain
-func GetModel(ctx context.Context, clientID, domain string) (*Model, error) {
-	model := Model{}
+func GetModel(ctx context.Context, clientID, domain string) (*ModelDS, error) {
+	model := ModelDS{}
 
 	// lookup the model definition
 	key := "model." + strings.ToLower(clientID+"."+domain)
 	_, err := memcache.Gob.Get(ctx, key, &model)
 
 	if err != nil {
-		var models []Model
+		var models []ModelDS
 		q := datastore.NewQuery(DatastoreModels).Filter("ClientID =", clientID).Filter("Domain =", domain).Order("-Revision")
 		_, err := q.GetAll(ctx, &models)
 		if err != nil {
@@ -74,7 +74,7 @@ func GetModel(ctx context.Context, clientID, domain string) (*Model, error) {
 
 // MarkModelExported writes a model record back to the datastore with updated metadata
 func MarkModelExported(ctx context.Context, clientID, domain string, exported, next int64) error {
-	var model Model
+	var model ModelDS
 
 	key := ModelKey(ctx, clientID, domain)
 	err := datastore.Get(ctx, key, &model)

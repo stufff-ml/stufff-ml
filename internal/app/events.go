@@ -100,7 +100,7 @@ func ScheduleEventsExportEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
 	topic := "scheduler.events.export"
 
-	var models []backend.Model
+	var models []backend.ModelDS
 	now := util.Timestamp()
 
 	q := datastore.NewQuery(backend.DatastoreModels).Filter("NextSchedule <=", now)

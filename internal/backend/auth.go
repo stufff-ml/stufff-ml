@@ -61,8 +61,8 @@ func ClientIDFromToken(ctx context.Context, token string) string {
 }
 
 // GetAuthorization returns the authorization for the given token
-func GetAuthorization(ctx context.Context, token string) (*Authorization, error) {
-	var auth = Authorization{}
+func GetAuthorization(ctx context.Context, token string) (*AuthorizationDS, error) {
+	var auth = AuthorizationDS{}
 
 	key := "auth.token." + strings.ToLower(token)
 	_, err := memcache.Gob.Get(ctx, key, &auth)
@@ -88,7 +88,7 @@ func GetAuthorization(ctx context.Context, token string) (*Authorization, error)
 func CreateClientAndAuthentication(ctx context.Context, clientID, clientSecret, scope, token string) error {
 
 	// ClientResource
-	cr := ClientResource{
+	cr := ClientResourceDS{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		Created:      util.Timestamp(),
@@ -102,7 +102,7 @@ func CreateClientAndAuthentication(ctx context.Context, clientID, clientSecret, 
 	}
 
 	// Authorization
-	auth := Authorization{
+	auth := AuthorizationDS{
 		ClientID: cr.ClientID,
 		Scope:    scope,
 		Token:    token,
