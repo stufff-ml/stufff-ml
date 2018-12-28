@@ -10,8 +10,13 @@ import (
 )
 
 // ModelKey key on collection MODELS
-func ModelKey(ctx context.Context, clientID, domain string) *datastore.Key {
-	return datastore.NewKey(ctx, DatastoreModels, clientID+"."+domain, 0, nil)
+func ModelKey(ctx context.Context, clientID, name string) *datastore.Key {
+	return datastore.NewKey(ctx, DatastoreModels, clientID+"."+name, 0, nil)
+}
+
+// ExportKey key on collection EXPORTS
+func ExportKey(ctx context.Context, clientID, event string) *datastore.Key {
+	return datastore.NewKey(ctx, DatastoreExports, clientID+"."+event, 0, nil)
 }
 
 // ClientResourceKey key on collection CLIENT_RESOURCES

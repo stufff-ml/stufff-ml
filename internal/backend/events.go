@@ -95,28 +95,28 @@ func ExportEvents(ctx context.Context, modelID string) (int, error) {
 
 	p := strings.Split(modelID, ".")
 	clientID := p[0]
-	domain := p[1]
+	event := p[1]
 
-	model, err := GetModel(ctx, clientID, domain)
+	export, err := GetExport(ctx, clientID, event)
 	if err != nil {
-		logger.Warning(ctx, topic, "Model not found. Model='%s'", modelID)
+		logger.Warning(ctx, topic, "Export not found. Export='%s'", modelID)
 		return -1, err
 	}
 
 	// create a blob on Cloud Storage
 	client, err := storage.NewClient(ctx)
 	if err != nil {
-		logger.Warning(ctx, topic, "Can not access storage. Model='%s'", modelID)
+		logger.Warning(ctx, topic, "Can not access storage. Export='%s'", modelID)
 		return -1, err
 	}
 
 	// timerange for the export: ]start, end]
-	start := model.LastExported
+	start := export.LastExported
 	end := util.Timestamp()
 	numEvents := 0
 
 	// monster query
-	q := datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID).Filter("Timestamp >", start).Limit(ExportBatchSize).Order("Timestamp")
+	q := datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID).Filter("Event =", event).Filter("Timestamp >", start).Limit(ExportBatchSize).Order("Timestamp")
 
 	fileName := fmt.Sprintf("%s/%s.%d.csv", modelID, modelID, start)
 	bucket := client.Bucket("exports.stufff.review")
@@ -135,7 +135,7 @@ func ExportEvents(ctx context.Context, modelID string) (int, error) {
 			break
 		}
 		if err != nil {
-			logger.Warning(ctx, topic, "Could not query events. Model='%s'", modelID)
+			logger.Warning(ctx, topic, "Could not query events. Export='%s'", modelID)
 			return -1, err
 		}
 
@@ -153,12 +153,10 @@ func ExportEvents(ctx context.Context, modelID string) (int, error) {
 
 	logger.Info(ctx, topic, "Exported %d events. File='%s'", numEvents, fileName)
 
-	// uodate metadata
-	model.LastExported = end
-	model.NextSchedule = util.IncT(end, model.TrainingSchedule)
-	err = MarkModelExported(ctx, clientID, domain, end, util.IncT(util.Timestamp(), model.ExportSchedule))
+	// update metadata
+	err = MarkExported(ctx, clientID, event, end, util.IncT(util.Timestamp(), export.ExportSchedule))
 	if err != nil {
-		logger.Warning(ctx, topic, "Could not update metadata. Model='%s'", modelID)
+		logger.Warning(ctx, topic, "Could not update metadata. Export='%s'", modelID)
 		return -1, err
 	}
 

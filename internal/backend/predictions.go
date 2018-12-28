@@ -29,7 +29,7 @@ func GetPrediction(ctx context.Context, clientID string, req *types.Prediction) 
 		return &p, err
 	}
 
-	key := PredictionKeyString(clientID, model.Domain, req.EntityID, string(model.Revision))
+	key := PredictionKeyString(clientID, "model.Domain", req.EntityID, string(model.Revision))
 	_, err = memcache.Gob.Get(ctx, key, &p)
 
 	if err != nil {

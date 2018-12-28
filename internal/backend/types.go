@@ -13,6 +13,8 @@ const (
 	DatastoreAuthorizations string = "AUTHORIZATIONS"
 	// DatastoreClientResources collection CLIENT_RESOURCES
 	DatastoreClientResources string = "CLIENT_RESOURCES"
+	// DatastoreExports collection EXPORTS
+	DatastoreExports string = "EXPORTS"
 
 	// ShortCacheDuration default time to keep stuff in memory
 	ShortCacheDuration string = "1m"
@@ -61,14 +63,26 @@ type (
 	// ModelDS represents a training model
 	ModelDS struct {
 		ClientID string `json:"client_id"`
-		Domain   string `json:"domain"`
+		Name     string `json:"name"`
 		Revision int    `json:"revision"`
 
 		// Metadata
-		ExportSchedule   int   `json:"export_schedule"`
 		TrainingSchedule int   `json:"training_schedule"`
 		NextSchedule     int64 `json:"next_schedule"`
-		LastExported     int64 `json:"exported"`
+
+		// internal metadata
+		Created int64 `json:"-"`
+	}
+
+	// ExportDS represents the export configuration of one clients data
+	ExportDS struct {
+		ClientID string `json:"client_id"`
+		Event    string `json:"event"`
+
+		// Metadata
+		ExportSchedule int   `json:"export_schedule"`
+		NextSchedule   int64 `json:"next_schedule"`
+		LastExported   int64 `json:"exported"`
 
 		// internal metadata
 		Created int64 `json:"-"`
@@ -83,7 +97,7 @@ type (
 		Created int64 `json:"-"`
 	}
 
-	// Authorization represents access to a resource
+	// AuthorizationDS represents access to a resource
 	AuthorizationDS struct {
 		ClientID string `json:"client_id"`
 		Scope    string `json:"scope"`

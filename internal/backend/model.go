@@ -13,20 +13,18 @@ import (
 )
 
 // CreateModel creates an initial model definition
-func CreateModel(ctx context.Context, clientID, domain string) (*ModelDS, error) {
+func CreateModel(ctx context.Context, clientID, name string) (*ModelDS, error) {
 
 	model := ModelDS{
 		ClientID:         clientID,
-		Domain:           domain,
+		Name:             name,
 		Revision:         1,
-		ExportSchedule:   15,
 		TrainingSchedule: 60,
 		NextSchedule:     0,
-		LastExported:     0,
 		Created:          util.Timestamp(),
 	}
 
-	key := ModelKey(ctx, clientID, domain)
+	key := ModelKey(ctx, clientID, name)
 	_, err := datastore.Put(ctx, key, &model)
 	if err != nil {
 		logger.Error(ctx, "backend.model.create", err.Error())
@@ -38,16 +36,16 @@ func CreateModel(ctx context.Context, clientID, domain string) (*ModelDS, error)
 }
 
 // GetModel returns a model based on the clientID and domain
-func GetModel(ctx context.Context, clientID, domain string) (*ModelDS, error) {
+func GetModel(ctx context.Context, clientID, name string) (*ModelDS, error) {
 	model := ModelDS{}
 
 	// lookup the model definition
-	key := "model." + strings.ToLower(clientID+"."+domain)
+	key := "model." + strings.ToLower(clientID+"."+name)
 	_, err := memcache.Gob.Get(ctx, key, &model)
 
 	if err != nil {
 		var models []ModelDS
-		q := datastore.NewQuery(DatastoreModels).Filter("ClientID =", clientID).Filter("Domain =", domain).Order("-Revision")
+		q := datastore.NewQuery(DatastoreModels).Filter("ClientID =", clientID).Filter("Name =", name).Order("-Revision")
 		_, err := q.GetAll(ctx, &models)
 		if err != nil {
 			return nil, err
@@ -70,29 +68,4 @@ func GetModel(ctx context.Context, clientID, domain string) (*ModelDS, error) {
 	}
 
 	return &model, nil
-}
-
-// MarkModelExported writes a model record back to the datastore with updated metadata
-func MarkModelExported(ctx context.Context, clientID, domain string, exported, next int64) error {
-	var model ModelDS
-
-	key := ModelKey(ctx, clientID, domain)
-	err := datastore.Get(ctx, key, &model)
-	if err != nil {
-		return err
-	}
-
-	model.LastExported = exported
-	model.NextSchedule = next
-
-	_, err = datastore.Put(ctx, key, &model)
-	if err != nil {
-		return err
-	}
-
-	// invalidate the cache
-	ckey := "model." + strings.ToLower(clientID+"."+domain)
-	err = memcache.Delete(ctx, ckey)
-
-	return err
 }

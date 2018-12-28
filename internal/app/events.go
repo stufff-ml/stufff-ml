@@ -100,19 +100,19 @@ func ScheduleEventsExportEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
 	topic := "scheduler.events.export"
 
-	var models []backend.ModelDS
+	var exports []backend.ExportDS
 	now := util.Timestamp()
 
-	q := datastore.NewQuery(backend.DatastoreModels).Filter("NextSchedule <=", now)
-	_, err := q.GetAll(ctx, &models)
+	q := datastore.NewQuery(backend.DatastoreExports).Filter("NextSchedule <=", now)
+	_, err := q.GetAll(ctx, &exports)
 
 	if err == nil {
-		if len(models) > 0 {
-			for i := range models {
-				modelID := fmt.Sprintf("%s.%s", models[i].ClientID, models[i].Domain)
-				jobs.ScheduleJob(ctx, backend.BackgroundWorkQueue, types.JobsBaseURL+"/export?id="+modelID)
+		if len(exports) > 0 {
+			for i := range exports {
+				exportID := fmt.Sprintf("%s.%s", exports[i].ClientID, exports[i].Event)
+				jobs.ScheduleJob(ctx, backend.BackgroundWorkQueue, types.JobsBaseURL+"/export?id="+exportID)
 
-				logger.Info(ctx, topic, "Scheduled export of new events. Model='%s'", modelID)
+				logger.Info(ctx, topic, "Scheduled export of new events. Export='%s'", exportID)
 			}
 		} else {
 			logger.Info(ctx, topic, "Nothing scheduled")
@@ -129,31 +129,31 @@ func JobEventsExportEndpoint(c *gin.Context) {
 	topic := "jobs.events.export"
 
 	// extract values
-	modelID := c.Query("id")
-	if modelID == "" {
-		logger.Warning(ctx, topic, "Empty model ID")
+	exportID := c.Query("id")
+	if exportID == "" {
+		logger.Warning(ctx, topic, "Empty export ID")
 		standardAPIResponse(ctx, c, topic, nil)
 		return
 	}
 
-	n, err := backend.ExportEvents(ctx, modelID)
+	n, err := backend.ExportEvents(ctx, exportID)
 	if err != nil {
-		logger.Warning(ctx, topic, "Issues exporting new data. Model='%s'. Err=%s", modelID, err.Error())
+		logger.Warning(ctx, topic, "Issues exporting new data. Export='%s'. Err=%s", exportID, err.Error())
 		standardAPIResponse(ctx, c, topic, err)
 		return
 	}
 
 	if n > 0 {
-		logger.Info(ctx, topic, "Exported new events. Model='%s'", modelID)
+		logger.Info(ctx, topic, "Exported new events. Export='%s'", exportID)
 
 		if n == backend.ExportBatchSize {
 			// more to export, do not merge yet
-			jobs.ScheduleJob(ctx, backend.BackgroundWorkQueue, types.JobsBaseURL+"/export?id="+modelID)
-			logger.Info(ctx, topic, "Re-scheduled export of new events. Model='%s'", modelID)
+			jobs.ScheduleJob(ctx, backend.BackgroundWorkQueue, types.JobsBaseURL+"/export?id="+exportID)
+			logger.Info(ctx, topic, "Re-scheduled export of new events. Export='%s'", exportID)
 		} else {
 			// schedule merging of files
-			jobs.ScheduleJob(ctx, backend.BackgroundWorkQueue, types.JobsBaseURL+"/merge?id="+modelID)
-			logger.Info(ctx, topic, "Scheduled merge of new events. Model='%s'", modelID)
+			jobs.ScheduleJob(ctx, backend.BackgroundWorkQueue, types.JobsBaseURL+"/merge?id="+exportID)
+			logger.Info(ctx, topic, "Scheduled merge of new events. Export='%s'", exportID)
 		}
 	}
 
@@ -166,16 +166,16 @@ func JobEventsMergeEndpoint(c *gin.Context) {
 	topic := "jobs.events.merge"
 
 	// extract values
-	modelID := c.Query("id")
-	if modelID == "" {
-		logger.Warning(ctx, topic, "Empty model ID")
+	exportID := c.Query("id")
+	if exportID == "" {
+		logger.Warning(ctx, topic, "Empty export ID")
 		standardAPIResponse(ctx, c, topic, nil)
 		return
 	}
 
-	err := backend.MergeEvents(ctx, modelID)
+	err := backend.MergeEvents(ctx, exportID)
 	if err == nil {
-		logger.Info(ctx, topic, "Merged events data. Model='%s'", modelID)
+		logger.Info(ctx, topic, "Merged events data. Export='%s'", exportID)
 	}
 
 	standardAPIResponse(ctx, c, topic, err)
