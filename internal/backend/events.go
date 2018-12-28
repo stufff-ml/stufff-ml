@@ -90,23 +90,23 @@ func StoreEvent(ctx context.Context, clientID string, event *types.Event) error 
 }
 
 // ExportEvents exports events in time range ]start, end] and writes it to a csv file on Cloud Storage
-func ExportEvents(ctx context.Context, modelID string) (int, error) {
+func ExportEvents(ctx context.Context, exportID string) (int, error) {
 	topic := "backend.events.export"
 
-	p := strings.Split(modelID, ".")
+	p := strings.Split(exportID, ".")
 	clientID := p[0]
 	event := p[1]
 
 	export, err := GetExport(ctx, clientID, event)
 	if err != nil {
-		logger.Warning(ctx, topic, "Export not found. Export='%s'", modelID)
+		logger.Warning(ctx, topic, "Export not found. Export='%s'", exportID)
 		return -1, err
 	}
 
 	// create a blob on Cloud Storage
 	client, err := storage.NewClient(ctx)
 	if err != nil {
-		logger.Warning(ctx, topic, "Can not access storage. Export='%s'", modelID)
+		logger.Warning(ctx, topic, "Can not access storage. Export='%s'", exportID)
 		return -1, err
 	}
 
@@ -118,8 +118,8 @@ func ExportEvents(ctx context.Context, modelID string) (int, error) {
 	// monster query
 	q := datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID).Filter("Event =", event).Filter("Timestamp >", start).Limit(ExportBatchSize).Order("Timestamp")
 
-	fileName := fmt.Sprintf("%s/%s.%d.csv", modelID, modelID, start)
-	bucket := client.Bucket("exports.stufff.review")
+	fileName := fmt.Sprintf("%s/%s.%d.csv", clientID, event, start)
+	bucket := client.Bucket(types.DefaultExportBucket)
 
 	w := bucket.Object(fileName).NewWriter(ctx)
 	w.ContentType = "text/plain"
@@ -135,7 +135,7 @@ func ExportEvents(ctx context.Context, modelID string) (int, error) {
 			break
 		}
 		if err != nil {
-			logger.Warning(ctx, topic, "Could not query events. Export='%s'", modelID)
+			logger.Warning(ctx, topic, "Could not query events. Export='%s'", exportID)
 			return -1, err
 		}
 
@@ -156,7 +156,7 @@ func ExportEvents(ctx context.Context, modelID string) (int, error) {
 	// update metadata
 	err = MarkExported(ctx, clientID, event, end, util.IncT(util.Timestamp(), export.ExportSchedule))
 	if err != nil {
-		logger.Warning(ctx, topic, "Could not update metadata. Export='%s'", modelID)
+		logger.Warning(ctx, topic, "Could not update metadata. Export='%s'", exportID)
 		return -1, err
 	}
 
@@ -164,26 +164,20 @@ func ExportEvents(ctx context.Context, modelID string) (int, error) {
 }
 
 // MergeEvents merges all exported events for a model in a single file
-func MergeEvents(ctx context.Context, modelID string) error {
+func MergeEvents(ctx context.Context, exportID string) error {
 	var size int64
 	var numFiles int
 
 	topic := "backend.events.merge"
 
-	p := strings.Split(modelID, ".")
+	p := strings.Split(exportID, ".")
 	clientID := p[0]
-	domain := p[1]
-
-	model, err := GetModel(ctx, clientID, domain)
-	if err != nil {
-		logger.Warning(ctx, topic, "Model not found. Model='%s'", modelID)
-		return err
-	}
+	event := p[1]
 
 	// get access to Cloud Storage
 	client, err := storage.NewClient(ctx)
 	if err != nil {
-		logger.Warning(ctx, topic, "Could not access storage. Model='%s'", modelID)
+		logger.Warning(ctx, topic, "Could not access storage. Export='%s'", exportID)
 		return err
 	}
 
@@ -192,13 +186,13 @@ func MergeEvents(ctx context.Context, modelID string) error {
 	targetBucket := client.Bucket(types.DefaultModelsBucket)
 
 	// new target blob
-	fileName := fmt.Sprintf("%s/%s.%d.csv", modelID, modelID, model.Revision)
+	fileName := fmt.Sprintf("%s/%s.csv", clientID, event)
 	w := targetBucket.Object(fileName).NewWriter(ctx)
 	w.ContentType = "text/plain"
 	defer w.Close()
 
 	// query blobs
-	q := storage.Query{Prefix: modelID}
+	q := storage.Query{Prefix: event}
 	it := sourceBucket.Objects(ctx, &q)
 
 	// merge the result
@@ -208,12 +202,12 @@ func MergeEvents(ctx context.Context, modelID string) error {
 			break
 		}
 		if err != nil {
-			logger.Warning(ctx, topic, "Could not access storage. Model='%s'", modelID)
+			logger.Warning(ctx, topic, "Could not access storage. Export='%s'", exportID)
 			return err
 		}
 		r, err := sourceBucket.Object(obj.Name).NewReader(ctx)
 		if err != nil {
-			logger.Warning(ctx, topic, "Could not access storage. Model='%s'", modelID)
+			logger.Warning(ctx, topic, "Could not access storage. Export='%s'", exportID)
 			return err
 		}
 		defer r.Close()
@@ -221,7 +215,7 @@ func MergeEvents(ctx context.Context, modelID string) error {
 		// copy from one blob into the other
 		b, err := io.Copy(w, r)
 		if err != nil {
-			logger.Warning(ctx, topic, "Could not copy exported events. Model='%s'", modelID)
+			logger.Warning(ctx, topic, "Could not copy exported events. Export='%s'", exportID)
 			return err
 		}
 
