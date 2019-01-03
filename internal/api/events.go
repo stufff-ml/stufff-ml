@@ -31,7 +31,7 @@ func GetEventsEndpoint(c *gin.Context) {
 
 	// authenticate and authorize
 	token := GetToken(ctx, c)
-	clientID, err := AuthenticateAndAuthorize(ctx, "events_access", token)
+	clientID, err := AuthenticateAndAuthorize(ctx, types.ScopeUserFull, token)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
 		return
@@ -67,7 +67,7 @@ func PostEventsEndpoint(c *gin.Context) {
 
 	// authenticate and authorize
 	token := GetToken(ctx, c)
-	clientID, err := AuthenticateAndAuthorize(ctx, "events_access", token)
+	clientID, err := AuthenticateAndAuthorize(ctx, types.ScopeUserFull, token)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
 		return

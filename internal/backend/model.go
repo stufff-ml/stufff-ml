@@ -39,7 +39,7 @@ func CreateModel(ctx context.Context, clientID, name string) (*types.ModelDS, er
 
 // GetModel returns a model based on the clientID and domain
 func GetModel(ctx context.Context, clientID, name string) (*types.ModelDS, error) {
-	model := types.ModelDS{}
+	var model types.ModelDS
 
 	// lookup the model definition
 	key := "model." + strings.ToLower(clientID+"."+name)

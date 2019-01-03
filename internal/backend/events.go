@@ -97,6 +97,8 @@ func ExportEvents(ctx context.Context, exportID string) (int, error) {
 	clientID := p[0]
 	event := p[1]
 
+	logger.Warning(ctx, topic, "+++ DEBUG %s %s %s", exportID, clientID, event)
+
 	export, err := GetExport(ctx, clientID, event)
 	if err != nil {
 		logger.Warning(ctx, topic, "Export not found. Export='%s'", exportID)

@@ -37,7 +37,7 @@ func CreateExport(ctx context.Context, clientID, event string) (*types.ExportDS,
 
 // GetExport returns an export definition based on the clientID and event
 func GetExport(ctx context.Context, clientID, event string) (*types.ExportDS, error) {
-	export := types.ExportDS{}
+	var export types.ExportDS
 
 	// lookup the model definition
 	key := "export." + strings.ToLower(clientID+"."+event)
@@ -46,7 +46,7 @@ func GetExport(ctx context.Context, clientID, event string) (*types.ExportDS, er
 	if err != nil {
 		var exports []types.ExportDS
 		q := datastore.NewQuery(types.DatastoreExports).Filter("ClientID =", clientID).Filter("Event =", event)
-		_, err := q.GetAll(ctx, &export)
+		_, err := q.GetAll(ctx, &exports)
 		if err != nil {
 			return nil, err
 		}
