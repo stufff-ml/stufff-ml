@@ -7,9 +7,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"google.golang.org/appengine"
 
-	"github.com/majordomusio/commons/pkg/gae/logger"
-
 	"github.com/stufff-ml/stufff-ml/internal/backend"
+	"github.com/stufff-ml/stufff-ml/pkg/helper"
+	"github.com/stufff-ml/stufff-ml/pkg/types"
 )
 
 // InitEndpoint creates an initial set of records to get started
@@ -27,14 +27,21 @@ func InitEndpoint(c *gin.Context) {
 		return
 	}
 
-	err := backend.CreateClientAndAuthentication(ctx, os.Getenv("ADMIN_CLIENT_ID"), os.Getenv("ADMIN_CLIENT_SECRET"), "admin", os.Getenv("ADMIN_CLIENT_TOKEN"))
+	clientID, _ := helper.ShortUUID()
+	clientSecret, _ := helper.SimpleUUID()
+	t, _ := helper.RandomToken()
+
+	err := backend.CreateClientAndAuthentication(ctx, clientID, clientSecret, "admin", t)
 	if err != nil {
-		logger.Error(ctx, "api.seed", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "error"})
+		return
 	}
 
-	// FIXME: remove this later !
-	backend.CreateModel(ctx, os.Getenv("ADMIN_CLIENT_ID"), "default")
+	resp := types.ClientResource{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		Token:        t,
+	}
+	c.JSON(http.StatusOK, &resp)
 
-	// all good
-	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }

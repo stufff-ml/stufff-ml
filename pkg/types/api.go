@@ -26,4 +26,11 @@ type (
 		Item  string  `json:"item"`
 		Score float64 `json:"score"`
 	}
+
+	// ClientResource returns a new client resource and its access token
+	ClientResource struct {
+		ClientID     string `json:"client_id"`
+		ClientSecret string `json:"client_secret"`
+		Token        string `json:"token"`
+	}
 )

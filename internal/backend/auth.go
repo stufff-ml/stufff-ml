@@ -84,6 +84,22 @@ func GetAuthorization(ctx context.Context, token string) (*AuthorizationDS, erro
 	return &auth, err
 }
 
+// GetToken extracts the bearer token
+func GetToken(ctx context.Context, c *gin.Context) string {
+
+	auth := c.Request.Header["Authorization"]
+	if len(auth) == 0 {
+		return ""
+	}
+
+	parts := strings.Split(auth[0], " ")
+	if len(parts) != 2 {
+		return ""
+	}
+
+	return strings.ToLower(parts[1])
+}
+
 // CreateClientAndAuthentication creates a new client and its authentication
 func CreateClientAndAuthentication(ctx context.Context, clientID, clientSecret, scope, token string) error {
 
@@ -119,20 +135,4 @@ func CreateClientAndAuthentication(ctx context.Context, clientID, clientSecret, 
 	}
 
 	return nil
-}
-
-// GetToken extracts the bearer token
-func GetToken(ctx context.Context, c *gin.Context) string {
-
-	auth := c.Request.Header["Authorization"]
-	if len(auth) == 0 {
-		return ""
-	}
-
-	parts := strings.Split(auth[0], " ")
-	if len(parts) != 2 {
-		return ""
-	}
-
-	return strings.ToLower(parts[1])
 }
