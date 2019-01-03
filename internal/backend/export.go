@@ -33,7 +33,6 @@ func CreateExport(ctx context.Context, clientID, event string) (*types.ExportDS,
 	}
 
 	return &model, nil
-
 }
 
 // GetExport returns an export definition based on the clientID and event

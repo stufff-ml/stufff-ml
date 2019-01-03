@@ -46,6 +46,7 @@ func init() {
 	// namespace /_a
 	adminNamespace := router.Group(a.AdminBaseURL)
 	adminNamespace.GET("/init", api.InitEndpoint)
+	adminNamespace.GET("/client.create", api.ClientCreateEndpoint)
 
 	// ready, start taking requests
 	http.Handle("/", router)

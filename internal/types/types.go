@@ -24,8 +24,15 @@ const (
 	// BackgroundWorkQueue is the default background job queue
 	BackgroundWorkQueue string = "background-work"
 
-	// ScopeAdmin grants access to all operations
-	ScopeAdmin string = "admin"
+	// ScopeAdminFull grants access to all operations
+	ScopeAdminFull string = "admin:full"
+	// ScopeAPIFull grants access to all API operations
+	ScopeAPIFull string = "api:full"
+	// ScopeUserFull grants access to all API operations
+	ScopeUserFull string = "user:full"
+
+	// ScopeRootAccess gets you all access
+	ScopeRootAccess string = "admin:full api:full"
 
 	// ExportBatchSize is the number of events to be exported in one job
 	ExportBatchSize int = 10001

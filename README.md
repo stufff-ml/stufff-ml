@@ -2,6 +2,10 @@
 stufff-ml
 
 
+admin:full	- Allows full read/write admin access to the API.
+api:full		- Allows full read/write access to the API with all permissions to administrate the app
+
+
 https://godoc.org/cloud.google.com/go/storage
 
 

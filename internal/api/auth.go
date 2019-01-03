@@ -35,7 +35,7 @@ func AuthenticateAndAuthorize(ctx context.Context, scope, token string) (string,
 	}
 
 	// check the authorization
-	if strings.Contains(auth.Scope, types.ScopeAdmin) {
+	if strings.Contains(auth.Scope, types.ScopeAdminFull) {
 		return auth.ClientID, nil
 	}
 

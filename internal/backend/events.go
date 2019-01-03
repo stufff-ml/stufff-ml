@@ -116,7 +116,12 @@ func ExportEvents(ctx context.Context, exportID string) (int, error) {
 	numEvents := 0
 
 	// monster query
-	q := datastore.NewQuery(types.DatastoreEvents).Filter("ClientID =", clientID).Filter("Event =", event).Filter("Timestamp >", start).Limit(types.ExportBatchSize).Order("Timestamp")
+	var q *datastore.Query
+	if event == "all" {
+		q = datastore.NewQuery(types.DatastoreEvents).Filter("ClientID =", clientID).Filter("Timestamp >", start).Limit(types.ExportBatchSize).Order("Timestamp")
+	} else {
+		q = datastore.NewQuery(types.DatastoreEvents).Filter("ClientID =", clientID).Filter("Event =", event).Filter("Timestamp >", start).Limit(types.ExportBatchSize).Order("Timestamp")
+	}
 
 	fileName := fmt.Sprintf("%s/%s.%d.csv", clientID, event, start)
 	bucket := client.Bucket(api.DefaultExportBucket)
