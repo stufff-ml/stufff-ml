@@ -5,8 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/stufff-ml/stufff-ml/internal/app"
-	"github.com/stufff-ml/stufff-ml/pkg/api"
+	"github.com/stufff-ml/stufff-ml/internal/api"
+	a "github.com/stufff-ml/stufff-ml/pkg/api"
 )
 
 func init() {
@@ -21,31 +21,31 @@ func init() {
 	router.Use(gin.Recovery())
 
 	// default endpoints that are not part of the API namespace
-	router.GET("/", app.DefaultEndpoint)
-	router.GET("/robots.txt", app.RobotsEndpoint)
+	router.GET("/", api.DefaultEndpoint)
+	router.GET("/robots.txt", api.RobotsEndpoint)
 
 	// namespace /api/1
-	apiNamespace := router.Group(api.APIBaseURL)
-	apiNamespace.GET("/events", app.GetEventsEndpoint)
-	apiNamespace.POST("/events", app.PostEventsEndpoint)
-	apiNamespace.POST("/predict", app.GetPredictionEndpoint)
+	apiNamespace := router.Group(a.APIBaseURL)
+	apiNamespace.GET("/events", api.GetEventsEndpoint)
+	apiNamespace.POST("/events", api.PostEventsEndpoint)
+	apiNamespace.POST("/predict", api.GetPredictionEndpoint)
 
 	// /_i/1/batch
-	batchNamespace := router.Group(api.BatchBaseURL)
-	batchNamespace.POST("/predictions", app.PostPredictionsEndpoint)
+	batchNamespace := router.Group(a.BatchBaseURL)
+	batchNamespace.POST("/predictions", api.PostPredictionsEndpoint)
 
 	// /_i/1/scheduler
-	schedulerNamespace := router.Group(api.SchedulerBaseURL)
-	schedulerNamespace.GET("/export", app.ScheduleEventsExportEndpoint)
+	schedulerNamespace := router.Group(a.SchedulerBaseURL)
+	schedulerNamespace.GET("/export", api.ScheduleEventsExportEndpoint)
 
 	// /_i/1/jobs
-	jobsNamespace := router.Group(api.JobsBaseURL)
-	jobsNamespace.POST("/export", app.JobEventsExportEndpoint)
-	jobsNamespace.POST("/merge", app.JobEventsMergeEndpoint)
+	jobsNamespace := router.Group(a.JobsBaseURL)
+	jobsNamespace.POST("/export", api.JobEventsExportEndpoint)
+	jobsNamespace.POST("/merge", api.JobEventsMergeEndpoint)
 
 	// namespace /_a
-	adminNamespace := router.Group(api.AdminBaseURL)
-	adminNamespace.GET("/init", app.InitEndpoint)
+	adminNamespace := router.Group(a.AdminBaseURL)
+	adminNamespace.GET("/init", api.InitEndpoint)
 
 	// ready, start taking requests
 	http.Handle("/", router)

@@ -11,7 +11,6 @@ import (
 	"github.com/majordomusio/commons/pkg/gae/logger"
 	"github.com/majordomusio/commons/pkg/util"
 
-	"github.com/stufff-ml/stufff-ml/internal/cloud"
 	"github.com/stufff-ml/stufff-ml/internal/types"
 )
 
@@ -27,7 +26,7 @@ func CreateModel(ctx context.Context, clientID, name string) (*types.ModelDS, er
 		Created:          util.Timestamp(),
 	}
 
-	key := cloud.ModelKey(ctx, clientID, name)
+	key := ModelKey(ctx, clientID, name)
 	_, err := datastore.Put(ctx, key, &model)
 	if err != nil {
 		logger.Error(ctx, "backend.model.create", err.Error())

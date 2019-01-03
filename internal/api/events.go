@@ -1,4 +1,4 @@
-package app
+package api
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 	"github.com/majordomusio/commons/pkg/gae/logger"
 	"github.com/majordomusio/commons/pkg/util"
 
-	"github.com/stufff-ml/stufff-ml/pkg/api"
+	a "github.com/stufff-ml/stufff-ml/pkg/api"
 
 	"github.com/stufff-ml/stufff-ml/internal/backend"
 	"github.com/stufff-ml/stufff-ml/internal/jobs"
@@ -30,8 +30,8 @@ func GetEventsEndpoint(c *gin.Context) {
 	topic := "events.get"
 
 	// authenticate and authorize
-	token := backend.GetToken(ctx, c)
-	clientID, err := backend.AuthenticateAndAuthorize(ctx, "events_access", token)
+	token := GetToken(ctx, c)
+	clientID, err := AuthenticateAndAuthorize(ctx, "events_access", token)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
 		return
@@ -66,14 +66,14 @@ func PostEventsEndpoint(c *gin.Context) {
 	topic := "events.post"
 
 	// authenticate and authorize
-	token := backend.GetToken(ctx, c)
-	clientID, err := backend.AuthenticateAndAuthorize(ctx, "events_access", token)
+	token := GetToken(ctx, c)
+	clientID, err := AuthenticateAndAuthorize(ctx, "events_access", token)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
 		return
 	}
 
-	var events []api.Event
+	var events []a.Event
 	err = c.BindJSON(&events)
 	if err == nil {
 		// TODO better auditing
@@ -111,7 +111,7 @@ func ScheduleEventsExportEndpoint(c *gin.Context) {
 		if len(exports) > 0 {
 			for i := range exports {
 				exportID := fmt.Sprintf("%s.%s", exports[i].ClientID, exports[i].Event)
-				jobs.ScheduleJob(ctx, types.BackgroundWorkQueue, api.JobsBaseURL+"/export?id="+exportID)
+				jobs.ScheduleJob(ctx, types.BackgroundWorkQueue, a.JobsBaseURL+"/export?id="+exportID)
 
 				logger.Info(ctx, topic, "Scheduled export of new events. Export='%s'", exportID)
 			}
@@ -149,11 +149,11 @@ func JobEventsExportEndpoint(c *gin.Context) {
 
 		if n == types.ExportBatchSize {
 			// more to export, do not merge yet
-			jobs.ScheduleJob(ctx, types.BackgroundWorkQueue, api.JobsBaseURL+"/export?id="+exportID)
+			jobs.ScheduleJob(ctx, types.BackgroundWorkQueue, a.JobsBaseURL+"/export?id="+exportID)
 			logger.Info(ctx, topic, "Re-scheduled export of new events. Export='%s'", exportID)
 		} else {
 			// schedule merging of files
-			jobs.ScheduleJob(ctx, types.BackgroundWorkQueue, api.JobsBaseURL+"/merge?id="+exportID)
+			jobs.ScheduleJob(ctx, types.BackgroundWorkQueue, a.JobsBaseURL+"/merge?id="+exportID)
 			logger.Info(ctx, topic, "Scheduled merge of new events. Export='%s'", exportID)
 		}
 	}

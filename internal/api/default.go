@@ -1,17 +1,17 @@
-package app
+package api
 
 import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/stufff-ml/stufff-ml/pkg/api"
+	a "github.com/stufff-ml/stufff-ml/pkg/api"
 )
 
 // DefaultEndpoint maps to GET /
 func DefaultEndpoint(c *gin.Context) {
 	// TODO: real implementation, logging & auditing
-	c.JSON(http.StatusOK, gin.H{"vesion": api.Version, "status": "ok"})
+	c.JSON(http.StatusOK, gin.H{"vesion": a.Version, "status": "ok"})
 }
 
 // RobotsEndpoint maps to GET /robots.txt

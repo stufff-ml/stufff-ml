@@ -11,7 +11,6 @@ import (
 	"github.com/majordomusio/commons/pkg/gae/logger"
 	"github.com/majordomusio/commons/pkg/util"
 
-	"github.com/stufff-ml/stufff-ml/internal/cloud"
 	"github.com/stufff-ml/stufff-ml/internal/types"
 )
 
@@ -26,7 +25,7 @@ func CreateExport(ctx context.Context, clientID, event string) (*types.ExportDS,
 		Created:        util.Timestamp(),
 	}
 
-	key := cloud.ExportKey(ctx, clientID, event)
+	key := ExportKey(ctx, clientID, event)
 	_, err := datastore.Put(ctx, key, &model)
 	if err != nil {
 		logger.Error(ctx, "backend.export.create", err.Error())
@@ -76,7 +75,7 @@ func GetExport(ctx context.Context, clientID, event string) (*types.ExportDS, er
 func MarkExported(ctx context.Context, clientID, event string, exported, next int64) error {
 	var export types.ExportDS
 
-	key := cloud.ExportKey(ctx, clientID, event)
+	key := ExportKey(ctx, clientID, event)
 	err := datastore.Get(ctx, key, &export)
 	if err != nil {
 		return err

@@ -1,4 +1,4 @@
-package app
+package api
 
 import (
 	"net/http"
@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"google.golang.org/appengine"
 
-	"github.com/stufff-ml/stufff-ml/pkg/api"
+	a "github.com/stufff-ml/stufff-ml/pkg/api"
 
 	"github.com/stufff-ml/stufff-ml/internal/backend"
 )
@@ -21,14 +21,14 @@ func PostPredictionsEndpoint(c *gin.Context) {
 	topic := "predictions.post"
 
 	// authenticate and authorize
-	token := backend.GetToken(ctx, c)
-	clientID, err := backend.AuthenticateAndAuthorize(ctx, "events_access", token)
+	token := GetToken(ctx, c)
+	clientID, err := AuthenticateAndAuthorize(ctx, "events_access", token)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
 		return
 	}
 
-	var predictions []api.Prediction
+	var predictions []a.Prediction
 	err = c.BindJSON(&predictions)
 	if err == nil {
 		for i := range predictions {
@@ -52,21 +52,21 @@ func GetPredictionEndpoint(c *gin.Context) {
 	topic := "prediction.single"
 
 	// authenticate and authorize
-	token := backend.GetToken(ctx, c)
-	clientID, err := backend.AuthenticateAndAuthorize(ctx, "events_access", token)
+	token := GetToken(ctx, c)
+	clientID, err := AuthenticateAndAuthorize(ctx, "events_access", token)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
 		return
 	}
 
-	var p api.Prediction
+	var p a.Prediction
 	err = c.BindJSON(&p)
 	if err == nil {
 		// TODO better auditing
 
 		result, err := backend.GetPrediction(ctx, clientID, &p)
 		if len(result.Items) == 0 {
-			result.Items = make([]api.ItemScore, 0)
+			result.Items = make([]a.ItemScore, 0)
 		}
 
 		standardJSONResponse(ctx, c, topic, result, err)
