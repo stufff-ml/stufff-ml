@@ -13,10 +13,11 @@ import (
 	"github.com/majordomusio/commons/pkg/gae/logger"
 	"github.com/majordomusio/commons/pkg/util"
 
-	"github.com/stufff-ml/stufff-ml/pkg/types"
+	"github.com/stufff-ml/stufff-ml/pkg/api"
 
 	"github.com/stufff-ml/stufff-ml/internal/backend"
 	"github.com/stufff-ml/stufff-ml/internal/jobs"
+	"github.com/stufff-ml/stufff-ml/internal/types"
 )
 
 //
@@ -72,7 +73,7 @@ func PostEventsEndpoint(c *gin.Context) {
 		return
 	}
 
-	var events []types.Event
+	var events []api.Event
 	err = c.BindJSON(&events)
 	if err == nil {
 		// TODO better auditing
@@ -100,17 +101,17 @@ func ScheduleEventsExportEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
 	topic := "scheduler.events.export"
 
-	var exports []backend.ExportDS
+	var exports []types.ExportDS
 	now := util.Timestamp()
 
-	q := datastore.NewQuery(backend.DatastoreExports).Filter("NextSchedule <=", now)
+	q := datastore.NewQuery(types.DatastoreExports).Filter("NextSchedule <=", now)
 	_, err := q.GetAll(ctx, &exports)
 
 	if err == nil {
 		if len(exports) > 0 {
 			for i := range exports {
 				exportID := fmt.Sprintf("%s.%s", exports[i].ClientID, exports[i].Event)
-				jobs.ScheduleJob(ctx, backend.BackgroundWorkQueue, types.JobsBaseURL+"/export?id="+exportID)
+				jobs.ScheduleJob(ctx, types.BackgroundWorkQueue, api.JobsBaseURL+"/export?id="+exportID)
 
 				logger.Info(ctx, topic, "Scheduled export of new events. Export='%s'", exportID)
 			}
@@ -146,13 +147,13 @@ func JobEventsExportEndpoint(c *gin.Context) {
 	if n > 0 {
 		logger.Info(ctx, topic, "Exported new events. Export='%s'", exportID)
 
-		if n == backend.ExportBatchSize {
+		if n == types.ExportBatchSize {
 			// more to export, do not merge yet
-			jobs.ScheduleJob(ctx, backend.BackgroundWorkQueue, types.JobsBaseURL+"/export?id="+exportID)
+			jobs.ScheduleJob(ctx, types.BackgroundWorkQueue, api.JobsBaseURL+"/export?id="+exportID)
 			logger.Info(ctx, topic, "Re-scheduled export of new events. Export='%s'", exportID)
 		} else {
 			// schedule merging of files
-			jobs.ScheduleJob(ctx, backend.BackgroundWorkQueue, types.JobsBaseURL+"/merge?id="+exportID)
+			jobs.ScheduleJob(ctx, types.BackgroundWorkQueue, api.JobsBaseURL+"/merge?id="+exportID)
 			logger.Info(ctx, topic, "Scheduled merge of new events. Export='%s'", exportID)
 		}
 	}

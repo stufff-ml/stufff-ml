@@ -1,6 +1,6 @@
-package backend
+package types
 
-import "github.com/stufff-ml/stufff-ml/pkg/types"
+import "github.com/stufff-ml/stufff-ml/pkg/api"
 
 const (
 	// DatastoreEvents collection EVENTS
@@ -54,7 +54,7 @@ type (
 		EntityID string `json:"entity_id"`
 		Revision int    `json:"revision"`
 
-		Items []types.ItemScore `datastore:",noindex" json:"items"`
+		Items []api.ItemScore `datastore:",noindex" json:"items"`
 
 		// internal metadata
 		Created int64 `json:"-"`

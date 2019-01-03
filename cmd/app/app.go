@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/stufff-ml/stufff-ml/internal/app"
-	"github.com/stufff-ml/stufff-ml/pkg/types"
+	"github.com/stufff-ml/stufff-ml/pkg/api"
 )
 
 func init() {
@@ -25,26 +25,26 @@ func init() {
 	router.GET("/robots.txt", app.RobotsEndpoint)
 
 	// namespace /api/1
-	apiNamespace := router.Group(types.APIBaseURL)
+	apiNamespace := router.Group(api.APIBaseURL)
 	apiNamespace.GET("/events", app.GetEventsEndpoint)
 	apiNamespace.POST("/events", app.PostEventsEndpoint)
 	apiNamespace.POST("/predict", app.GetPredictionEndpoint)
 
 	// /_i/1/batch
-	batchNamespace := router.Group(types.BatchBaseURL)
+	batchNamespace := router.Group(api.BatchBaseURL)
 	batchNamespace.POST("/predictions", app.PostPredictionsEndpoint)
 
 	// /_i/1/scheduler
-	schedulerNamespace := router.Group(types.SchedulerBaseURL)
+	schedulerNamespace := router.Group(api.SchedulerBaseURL)
 	schedulerNamespace.GET("/export", app.ScheduleEventsExportEndpoint)
 
 	// /_i/1/jobs
-	jobsNamespace := router.Group(types.JobsBaseURL)
+	jobsNamespace := router.Group(api.JobsBaseURL)
 	jobsNamespace.POST("/export", app.JobEventsExportEndpoint)
 	jobsNamespace.POST("/merge", app.JobEventsMergeEndpoint)
 
 	// namespace /_a
-	adminNamespace := router.Group(types.AdminBaseURL)
+	adminNamespace := router.Group(api.AdminBaseURL)
 	adminNamespace.GET("/init", app.InitEndpoint)
 
 	// ready, start taking requests

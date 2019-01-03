@@ -10,17 +10,20 @@ import (
 	"github.com/majordomusio/commons/pkg/gae/logger"
 	"github.com/majordomusio/commons/pkg/util"
 
-	"github.com/stufff-ml/stufff-ml/pkg/types"
+	"github.com/stufff-ml/stufff-ml/pkg/api"
+
+	"github.com/stufff-ml/stufff-ml/internal/cloud"
+	"github.com/stufff-ml/stufff-ml/internal/types"
 )
 
 // GetPrediction returns a prediction based on a specified model
-func GetPrediction(ctx context.Context, clientID string, req *types.Prediction) (*types.Prediction, error) {
+func GetPrediction(ctx context.Context, clientID string, req *api.Prediction) (*api.Prediction, error) {
 
 	// lookup the prediction
-	p := types.Prediction{
+	p := api.Prediction{
 		EntityID: req.EntityID,
 		Domain:   req.Domain,
-		Items:    make([]types.ItemScore, 0),
+		Items:    make([]api.ItemScore, 0),
 	}
 
 	// lookup the model definition
@@ -29,13 +32,13 @@ func GetPrediction(ctx context.Context, clientID string, req *types.Prediction) 
 		return &p, err
 	}
 
-	key := PredictionKeyString(clientID, "model.Domain", req.EntityID, string(model.Revision))
+	key := cloud.PredictionKeyString(clientID, "model.Domain", req.EntityID, string(model.Revision))
 	_, err = memcache.Gob.Get(ctx, key, &p)
 
 	if err != nil {
 
-		ps := PredictionDS{}
-		err = datastore.Get(ctx, PredictionKey(ctx, key), &ps)
+		ps := types.PredictionDS{}
+		err = datastore.Get(ctx, cloud.PredictionKey(ctx, key), &ps)
 		if err == nil {
 
 			p.Items = ps.Items
@@ -43,7 +46,7 @@ func GetPrediction(ctx context.Context, clientID string, req *types.Prediction) 
 			cache := memcache.Item{}
 			cache.Key = key
 			cache.Object = &p
-			cache.Expiration, _ = time.ParseDuration(ShortCacheDuration)
+			cache.Expiration, _ = time.ParseDuration(types.ShortCacheDuration)
 			memcache.Gob.Set(ctx, &cache)
 		}
 	}
@@ -52,11 +55,11 @@ func GetPrediction(ctx context.Context, clientID string, req *types.Prediction) 
 }
 
 // StorePrediction stores a materialized prediction in the datastore
-func StorePrediction(ctx context.Context, clientID string, prediction *types.Prediction) error {
+func StorePrediction(ctx context.Context, clientID string, prediction *api.Prediction) error {
 
 	model, err := GetModel(ctx, clientID, prediction.Domain)
 
-	ps := PredictionDS{
+	ps := types.PredictionDS{
 		ClientID: clientID,
 		Domain:   prediction.Domain,
 		EntityID: prediction.EntityID,
@@ -65,7 +68,7 @@ func StorePrediction(ctx context.Context, clientID string, prediction *types.Pre
 		Created:  util.Timestamp(),
 	}
 
-	key := PredictionKey(ctx, PredictionKeyString(clientID, prediction.Domain, prediction.EntityID, string(model.Revision)))
+	key := cloud.PredictionKey(ctx, cloud.PredictionKeyString(clientID, prediction.Domain, prediction.EntityID, string(model.Revision)))
 	_, err = datastore.Put(ctx, key, &ps)
 	if err != nil {
 		logger.Error(ctx, "backend.prediction.store", err.Error())

@@ -5,13 +5,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/stufff-ml/stufff-ml/pkg/types"
+	"github.com/stufff-ml/stufff-ml/pkg/api"
 )
 
 // DefaultEndpoint maps to GET /
 func DefaultEndpoint(c *gin.Context) {
 	// TODO: real implementation, logging & auditing
-	c.JSON(http.StatusOK, gin.H{"vesion": types.Version, "status": "ok"})
+	c.JSON(http.StatusOK, gin.H{"vesion": api.Version, "status": "ok"})
 }
 
 // RobotsEndpoint maps to GET /robots.txt

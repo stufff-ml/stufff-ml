@@ -10,12 +10,15 @@ import (
 
 	"github.com/majordomusio/commons/pkg/gae/logger"
 	"github.com/majordomusio/commons/pkg/util"
+
+	"github.com/stufff-ml/stufff-ml/internal/cloud"
+	"github.com/stufff-ml/stufff-ml/internal/types"
 )
 
 // CreateExport creates an initial export definition
-func CreateExport(ctx context.Context, clientID, event string) (*ExportDS, error) {
+func CreateExport(ctx context.Context, clientID, event string) (*types.ExportDS, error) {
 
-	model := ExportDS{
+	model := types.ExportDS{
 		ClientID:       clientID,
 		Event:          event,
 		ExportSchedule: 15,
@@ -23,7 +26,7 @@ func CreateExport(ctx context.Context, clientID, event string) (*ExportDS, error
 		Created:        util.Timestamp(),
 	}
 
-	key := ExportKey(ctx, clientID, event)
+	key := cloud.ExportKey(ctx, clientID, event)
 	_, err := datastore.Put(ctx, key, &model)
 	if err != nil {
 		logger.Error(ctx, "backend.export.create", err.Error())
@@ -35,16 +38,16 @@ func CreateExport(ctx context.Context, clientID, event string) (*ExportDS, error
 }
 
 // GetExport returns an export definition based on the clientID and event
-func GetExport(ctx context.Context, clientID, event string) (*ExportDS, error) {
-	export := ExportDS{}
+func GetExport(ctx context.Context, clientID, event string) (*types.ExportDS, error) {
+	export := types.ExportDS{}
 
 	// lookup the model definition
 	key := "export." + strings.ToLower(clientID+"."+event)
 	_, err := memcache.Gob.Get(ctx, key, &export)
 
 	if err != nil {
-		var exports []ExportDS
-		q := datastore.NewQuery(DatastoreExports).Filter("ClientID =", clientID).Filter("Event =", event)
+		var exports []types.ExportDS
+		q := datastore.NewQuery(types.DatastoreExports).Filter("ClientID =", clientID).Filter("Event =", event)
 		_, err := q.GetAll(ctx, &export)
 		if err != nil {
 			return nil, err
@@ -59,7 +62,7 @@ func GetExport(ctx context.Context, clientID, event string) (*ExportDS, error) {
 			cache := memcache.Item{}
 			cache.Key = key
 			cache.Object = export
-			cache.Expiration, _ = time.ParseDuration(ShortCacheDuration)
+			cache.Expiration, _ = time.ParseDuration(types.ShortCacheDuration)
 			memcache.Gob.Set(ctx, &cache)
 		} else {
 			return nil, err
@@ -71,9 +74,9 @@ func GetExport(ctx context.Context, clientID, event string) (*ExportDS, error) {
 
 // MarkExported writes an export record back to the datastore with updated metadata
 func MarkExported(ctx context.Context, clientID, event string, exported, next int64) error {
-	var export ExportDS
+	var export types.ExportDS
 
-	key := ExportKey(ctx, clientID, event)
+	key := cloud.ExportKey(ctx, clientID, event)
 	err := datastore.Get(ctx, key, &export)
 	if err != nil {
 		return err

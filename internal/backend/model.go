@@ -10,12 +10,15 @@ import (
 
 	"github.com/majordomusio/commons/pkg/gae/logger"
 	"github.com/majordomusio/commons/pkg/util"
+
+	"github.com/stufff-ml/stufff-ml/internal/cloud"
+	"github.com/stufff-ml/stufff-ml/internal/types"
 )
 
 // CreateModel creates an initial model definition
-func CreateModel(ctx context.Context, clientID, name string) (*ModelDS, error) {
+func CreateModel(ctx context.Context, clientID, name string) (*types.ModelDS, error) {
 
-	model := ModelDS{
+	model := types.ModelDS{
 		ClientID:         clientID,
 		Name:             name,
 		Revision:         1,
@@ -24,7 +27,7 @@ func CreateModel(ctx context.Context, clientID, name string) (*ModelDS, error) {
 		Created:          util.Timestamp(),
 	}
 
-	key := ModelKey(ctx, clientID, name)
+	key := cloud.ModelKey(ctx, clientID, name)
 	_, err := datastore.Put(ctx, key, &model)
 	if err != nil {
 		logger.Error(ctx, "backend.model.create", err.Error())
@@ -36,16 +39,16 @@ func CreateModel(ctx context.Context, clientID, name string) (*ModelDS, error) {
 }
 
 // GetModel returns a model based on the clientID and domain
-func GetModel(ctx context.Context, clientID, name string) (*ModelDS, error) {
-	model := ModelDS{}
+func GetModel(ctx context.Context, clientID, name string) (*types.ModelDS, error) {
+	model := types.ModelDS{}
 
 	// lookup the model definition
 	key := "model." + strings.ToLower(clientID+"."+name)
 	_, err := memcache.Gob.Get(ctx, key, &model)
 
 	if err != nil {
-		var models []ModelDS
-		q := datastore.NewQuery(DatastoreModels).Filter("ClientID =", clientID).Filter("Name =", name).Order("-Revision")
+		var models []types.ModelDS
+		q := datastore.NewQuery(types.DatastoreModels).Filter("ClientID =", clientID).Filter("Name =", name).Order("-Revision")
 		_, err := q.GetAll(ctx, &models)
 		if err != nil {
 			return nil, err
@@ -60,7 +63,7 @@ func GetModel(ctx context.Context, clientID, name string) (*ModelDS, error) {
 			cache := memcache.Item{}
 			cache.Key = key
 			cache.Object = model
-			cache.Expiration, _ = time.ParseDuration(ShortCacheDuration)
+			cache.Expiration, _ = time.ParseDuration(types.ShortCacheDuration)
 			memcache.Gob.Set(ctx, &cache)
 		} else {
 			return nil, err

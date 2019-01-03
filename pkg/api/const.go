@@ -1,4 +1,4 @@
-package types
+package api
 
 const (
 	// Version is the human readable version string of this build

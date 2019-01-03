@@ -7,9 +7,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"google.golang.org/appengine"
 
-	"github.com/stufff-ml/stufff-ml/internal/backend"
+	"github.com/stufff-ml/stufff-ml/pkg/api"
 	"github.com/stufff-ml/stufff-ml/pkg/helper"
-	"github.com/stufff-ml/stufff-ml/pkg/types"
+
+	"github.com/stufff-ml/stufff-ml/internal/backend"
+	"github.com/stufff-ml/stufff-ml/internal/cloud"
 )
 
 // InitEndpoint creates an initial set of records to get started
@@ -31,13 +33,13 @@ func InitEndpoint(c *gin.Context) {
 	clientSecret, _ := helper.SimpleUUID()
 	t, _ := helper.RandomToken()
 
-	err := backend.CreateClientAndAuthentication(ctx, clientID, clientSecret, "admin", t)
+	err := cloud.CreateClientAndAuthentication(ctx, clientID, clientSecret, "admin", t)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "error"})
 		return
 	}
 
-	resp := types.ClientResource{
+	resp := api.ClientResource{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		Token:        t,

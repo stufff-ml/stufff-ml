@@ -12,18 +12,18 @@ import (
 
 	"github.com/majordomusio/commons/pkg/gae/logger"
 	"github.com/majordomusio/commons/pkg/util"
-
-	"github.com/stufff-ml/stufff-ml/pkg/types"
+	"github.com/stufff-ml/stufff-ml/internal/types"
+	"github.com/stufff-ml/stufff-ml/pkg/api"
 )
 
 // GetEvents queries the events store for events of type event in the time range [start, end]
-func GetEvents(ctx context.Context, clientID, event string, start, end int64, page, limit int) (*[]EventDS, error) {
+func GetEvents(ctx context.Context, clientID, event string, start, end int64, page, limit int) (*[]types.EventDS, error) {
 	topic := "backend.events.get"
 
-	var events []EventDS
+	var events []types.EventDS
 	var q *datastore.Query
 
-	q = datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID)
+	q = datastore.NewQuery(types.DatastoreEvents).Filter("ClientID =", clientID)
 
 	// filter event type
 	if event != "" {
@@ -55,7 +55,7 @@ func GetEvents(ctx context.Context, clientID, event string, start, end int64, pa
 	}
 
 	if len(events) == 0 {
-		events = make([]EventDS, 0)
+		events = make([]types.EventDS, 0)
 	}
 
 	logger.Info(ctx, topic, "ClientID=%s,time[%d,%d],page=%d,limit=%d. Found=%d", clientID, start, end, page, limit, len(events))
@@ -63,11 +63,11 @@ func GetEvents(ctx context.Context, clientID, event string, start, end int64, pa
 }
 
 // StoreEvent stores an event in the datastore
-func StoreEvent(ctx context.Context, clientID string, event *types.Event) error {
+func StoreEvent(ctx context.Context, clientID string, event *api.Event) error {
 	topic := "backend.events.store"
 
 	// deep copy of the struct
-	e := EventDS{
+	e := types.EventDS{
 		clientID,
 		event.Event,
 		event.EntityType,
@@ -79,7 +79,7 @@ func StoreEvent(ctx context.Context, clientID string, event *types.Event) error 
 		util.Timestamp(),
 	}
 
-	key := datastore.NewIncompleteKey(ctx, DatastoreEvents, nil)
+	key := datastore.NewIncompleteKey(ctx, types.DatastoreEvents, nil)
 	_, err := datastore.Put(ctx, key, &e)
 
 	if err != nil {
@@ -116,10 +116,10 @@ func ExportEvents(ctx context.Context, exportID string) (int, error) {
 	numEvents := 0
 
 	// monster query
-	q := datastore.NewQuery(DatastoreEvents).Filter("ClientID =", clientID).Filter("Event =", event).Filter("Timestamp >", start).Limit(ExportBatchSize).Order("Timestamp")
+	q := datastore.NewQuery(types.DatastoreEvents).Filter("ClientID =", clientID).Filter("Event =", event).Filter("Timestamp >", start).Limit(types.ExportBatchSize).Order("Timestamp")
 
 	fileName := fmt.Sprintf("%s/%s.%d.csv", clientID, event, start)
-	bucket := client.Bucket(types.DefaultExportBucket)
+	bucket := client.Bucket(api.DefaultExportBucket)
 
 	w := bucket.Object(fileName).NewWriter(ctx)
 	w.ContentType = "text/plain"
@@ -128,7 +128,7 @@ func ExportEvents(ctx context.Context, exportID string) (int, error) {
 	// run the query and write the blob
 	iter := q.Run(ctx)
 	for {
-		var e EventDS
+		var e types.EventDS
 
 		_, err := iter.Next(&e)
 		if err == datastore.Done {
@@ -182,8 +182,8 @@ func MergeEvents(ctx context.Context, exportID string) error {
 	}
 
 	// buckets
-	sourceBucket := client.Bucket(types.DefaultExportBucket)
-	targetBucket := client.Bucket(types.DefaultModelsBucket)
+	sourceBucket := client.Bucket(api.DefaultExportBucket)
+	targetBucket := client.Bucket(api.DefaultModelsBucket)
 
 	// new target blob
 	fileName := fmt.Sprintf("%s/%s.csv", clientID, event)

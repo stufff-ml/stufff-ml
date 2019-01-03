@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"google.golang.org/appengine"
 
-	"github.com/stufff-ml/stufff-ml/pkg/types"
+	"github.com/stufff-ml/stufff-ml/pkg/api"
 
 	"github.com/stufff-ml/stufff-ml/internal/backend"
 )
@@ -28,7 +28,7 @@ func PostPredictionsEndpoint(c *gin.Context) {
 		return
 	}
 
-	var predictions []types.Prediction
+	var predictions []api.Prediction
 	err = c.BindJSON(&predictions)
 	if err == nil {
 		for i := range predictions {
@@ -59,14 +59,14 @@ func GetPredictionEndpoint(c *gin.Context) {
 		return
 	}
 
-	var p types.Prediction
+	var p api.Prediction
 	err = c.BindJSON(&p)
 	if err == nil {
 		// TODO better auditing
 
 		result, err := backend.GetPrediction(ctx, clientID, &p)
 		if len(result.Items) == 0 {
-			result.Items = make([]types.ItemScore, 0)
+			result.Items = make([]api.ItemScore, 0)
 		}
 
 		standardJSONResponse(ctx, c, topic, result, err)
