@@ -70,8 +70,8 @@ func GetExport(ctx context.Context, clientID, event string) (*types.ExportDS, er
 	return &export, nil
 }
 
-// MarkExported writes an export record back to the datastore with updated metadata
-func MarkExported(ctx context.Context, clientID, event string, exported, next int64) error {
+// markExported writes an export record back to the datastore with updated metadata
+func markExported(ctx context.Context, clientID, event string, exported, next int64) error {
 	var export types.ExportDS
 
 	key := ExportKey(ctx, clientID, event)

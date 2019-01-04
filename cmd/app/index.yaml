@@ -32,10 +32,3 @@ indexes:
   properties:
   - name: ClientID
   - name: Timestamp
-
-- kind: MODELS
-  properties:
-  - name: ClientID
-  - name: Domain
-  - name: Revision
-    direction: desc

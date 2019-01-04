@@ -71,3 +71,58 @@ func GetModel(ctx context.Context, clientID, name string) (*types.ModelDS, error
 
 	return &model, nil
 }
+
+// SubmitModel submits a model for training to Google ML
+func SubmitModel(ctx context.Context, modelID string) error {
+	topic := "backend.model.train"
+
+	p := strings.Split(modelID, ".")
+	clientID := p[0]
+	name := p[1]
+
+	model, err := GetModel(ctx, clientID, name)
+	if err != nil {
+		logger.Warning(ctx, topic, "Model not found. Model='%s'", modelID)
+		return err
+	}
+
+	//
+	// Google ML
+	//
+
+	// update metadata
+	err = markTrained(ctx, clientID, name, 0, util.IncT(util.Timestamp(), model.TrainingSchedule))
+	if err != nil {
+		logger.Warning(ctx, topic, "Could not update metadata. Model='%s'", modelID)
+		return err
+	}
+
+	logger.Info(ctx, topic, "Submitted model %s.%s for training. Client='%s'", clientID, name, clientID)
+
+	return nil
+}
+
+// MarkTrained writes an export record back to the datastore with updated metadata
+func markTrained(ctx context.Context, clientID, name string, trained, next int64) error {
+	var model types.ModelDS
+
+	key := ModelKey(ctx, clientID, name)
+	err := datastore.Get(ctx, key, &model)
+	if err != nil {
+		return err
+	}
+
+	//model.LastTrained = trained
+	model.NextSchedule = next
+
+	_, err = datastore.Put(ctx, key, &model)
+	if err != nil {
+		return err
+	}
+
+	// invalidate the cache
+	ckey := "model." + strings.ToLower(clientID+"."+name)
+	err = memcache.Delete(ctx, ckey)
+
+	return err
+}

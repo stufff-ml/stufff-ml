@@ -72,3 +72,26 @@ func JobEventsMergeEndpoint(c *gin.Context) {
 
 	helper.StandardAPIResponse(ctx, c, topic, err)
 }
+
+// JobModelTrainingEndpoint schedules the training of a model
+func JobModelTrainingEndpoint(c *gin.Context) {
+	ctx := appengine.NewContext(c.Request)
+	topic := "jobs.model.training"
+
+	// extract values
+	modelID := c.Query("id")
+	if modelID == "" {
+		logger.Warning(ctx, topic, "Empty model ID")
+		helper.StandardAPIResponse(ctx, c, topic, nil)
+		return
+	}
+
+	err := backend.SubmitModel(ctx, modelID)
+	if err != nil {
+		logger.Warning(ctx, topic, "Issues submitting model for training. Model='%s'. Err=%s", modelID, err.Error())
+		helper.StandardAPIResponse(ctx, c, topic, err)
+		return
+	}
+
+	helper.StandardAPIResponse(ctx, c, topic, err)
+}

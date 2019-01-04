@@ -18,7 +18,7 @@ import (
 	"github.com/stufff-ml/stufff-ml/internal/types"
 )
 
-// ScheduleEventsExportEndpoint retrieves all raw events within a given time range
+// ScheduleEventsExportEndpoint schedules the export of new events
 func ScheduleEventsExportEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
 	topic := "scheduler.events.export"
@@ -36,6 +36,34 @@ func ScheduleEventsExportEndpoint(c *gin.Context) {
 				jobs.ScheduleJob(ctx, types.BackgroundWorkQueue, a.JobsBaseURL+"/export?id="+exportID)
 
 				logger.Info(ctx, topic, "Scheduled export of new events. Export='%s'", exportID)
+			}
+		} else {
+			logger.Info(ctx, topic, "Nothing scheduled")
+		}
+	}
+
+	// logging and standard response
+	helper.StandardAPIResponse(ctx, c, topic, err)
+}
+
+// ScheduleModelTrainingEndpoint schedules periodic model training
+func ScheduleModelTrainingEndpoint(c *gin.Context) {
+	ctx := appengine.NewContext(c.Request)
+	topic := "scheduler.model.training"
+
+	var models []types.ModelDS
+	now := util.Timestamp()
+
+	q := datastore.NewQuery(types.DatastoreModels).Filter("NextSchedule <=", now)
+	_, err := q.GetAll(ctx, &models)
+
+	if err == nil {
+		if len(models) > 0 {
+			for i := range models {
+				modelID := fmt.Sprintf("%s.%s", models[i].ClientID, models[i].Name)
+				jobs.ScheduleJob(ctx, types.BackgroundWorkQueue, a.JobsBaseURL+"/train?id="+modelID)
+
+				logger.Info(ctx, topic, "Scheduled model training. Model='%s'", modelID)
 			}
 		} else {
 			logger.Info(ctx, topic, "Nothing scheduled")

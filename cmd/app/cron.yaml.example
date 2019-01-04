@@ -1,5 +1,10 @@
 cron:
 - description: "Periodically export events data"
   url: /_i/1/scheduler/export
-  schedule: every 60 minutes
+  schedule: every 10 minutes
+  target: default
+
+- description: "Periodically train models"
+  url: /_i/1/scheduler/train
+  schedule: every 15 minutes
   target: default

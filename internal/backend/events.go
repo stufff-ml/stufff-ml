@@ -159,7 +159,7 @@ func ExportEvents(ctx context.Context, exportID string) (int, error) {
 	logger.Info(ctx, topic, "Exported %d events. File='%s'", numEvents, fileName)
 
 	// update metadata
-	err = MarkExported(ctx, clientID, event, end, util.IncT(util.Timestamp(), export.ExportSchedule))
+	err = markExported(ctx, clientID, event, end, util.IncT(util.Timestamp(), export.ExportSchedule))
 	if err != nil {
 		logger.Warning(ctx, topic, "Could not update metadata. Export='%s'", exportID)
 		return -1, err

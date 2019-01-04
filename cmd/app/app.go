@@ -41,11 +41,13 @@ func init() {
 	// /_i/1/scheduler
 	schedulerNamespace := router.Group(a.SchedulerBaseURL)
 	schedulerNamespace.GET("/export", api.ScheduleEventsExportEndpoint)
+	schedulerNamespace.GET("/train", api.ScheduleModelTrainingEndpoint)
 
 	// /_i/1/jobs
 	jobsNamespace := router.Group(a.JobsBaseURL)
 	jobsNamespace.POST("/export", api.JobEventsExportEndpoint)
 	jobsNamespace.POST("/merge", api.JobEventsMergeEndpoint)
+	jobsNamespace.POST("/train", api.JobModelTrainingEndpoint)
 
 	// default endpoints that are not part of the API namespace
 	router.GET("/", api.DefaultEndpoint)
