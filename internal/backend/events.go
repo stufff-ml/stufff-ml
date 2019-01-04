@@ -68,15 +68,15 @@ func StoreEvent(ctx context.Context, clientID string, event *api.Event) error {
 
 	// deep copy of the struct
 	e := types.EventDS{
-		clientID,
-		event.Event,
-		event.EntityType,
-		event.EntityID,
-		event.TargetEntityType,
-		event.TargetEntityID,
-		event.Properties,
-		event.Timestamp,
-		util.Timestamp(),
+		ClientID:         clientID,
+		Event:            event.Event,
+		EntityType:       event.EntityType,
+		EntityID:         event.EntityID,
+		TargetEntityType: event.TargetEntityType,
+		TargetEntityID:   event.TargetEntityID,
+		Properties:       event.Properties,
+		Timestamp:        event.Timestamp,
+		Created:          util.Timestamp(),
 	}
 
 	key := datastore.NewIncompleteKey(ctx, types.DatastoreEvents, nil)
