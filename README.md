@@ -8,6 +8,7 @@ api:full		- Allows full read/write access to the API with all permissions to adm
 
 https://godoc.org/cloud.google.com/go/storage
 
+gcloud functions deploy func_submit --region=europe-west1 --trigger-http --entry-point=handle_request --memory=128MB --runtime=python37 --source=func_submit 
 
 [
 	{

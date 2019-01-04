@@ -2,8 +2,14 @@ package backend
 
 import (
 	"context"
+	"log"
 	"strings"
 	"time"
+
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/googleapi"
+	ml "google.golang.org/api/ml/v1"
 
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/memcache"
@@ -89,6 +95,50 @@ func SubmitModel(ctx context.Context, modelID string) error {
 	//
 	// Google ML
 	//
+
+	ts, err := google.DefaultTokenSource(ctx, "https://www.googleapis.com/auth/cloud-platform")
+	if err != nil {
+		log.Fatal(err)
+	}
+	client := oauth2.NewClient(ctx, ts)
+
+	/*
+		data, err := ioutil.ReadFile("../../test_user.json")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		creds, err := google.CredentialsFromJSON(ctx, data, "https://www.googleapis.com/auth/cloud-platform")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		client := &http.Client{
+			Transport: &oauth2.Transport{
+				Source: creds.TokenSource,
+				//Source: google.AppEngineTokenSource(ctx, "https://www.googleapis.com/auth/cloud-platform"),
+				Base: &urlfetch.Transport{
+					Context: ctx,
+				},
+			},
+		}
+	*/
+
+	//mlService, err := ml.New(urlfetch.Client(ctx))
+	mlService, err := ml.New(client)
+	if err != nil {
+		logger.Warning(ctx, topic, "Could not create client for ML service. Model='%s'", modelID)
+		return err
+	}
+
+	call := mlService.Projects.Jobs.List("projects/stufff-ml")
+	resp, e := call.Do(googleapi.Trace("abcd1234"))
+	//config := mlService.Projects.GetConfig("projects/stufff-ml")
+
+	//getConfig := config.Context(ctx)
+	//resp, e := getConfig.Do(googleapi.Trace("abcd1234"))
+
+	logger.Info(ctx, topic, "+++ ", ts, resp, e)
 
 	// update metadata
 	err = markTrained(ctx, clientID, name, 0, util.IncT(util.Timestamp(), model.TrainingSchedule))

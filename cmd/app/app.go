@@ -53,6 +53,8 @@ func init() {
 	router.GET("/", api.DefaultEndpoint)
 	router.GET("/robots.txt", api.RobotsEndpoint)
 
+	router.GET("/debug", api.DebugEndpoint)
+
 	// ready, start taking requests
 	http.Handle("/", router)
 }

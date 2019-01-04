@@ -15,6 +15,7 @@
 app.yaml
 cron.yaml
 stuff.md
+*.json
 
 # IDE files
 .vscode
