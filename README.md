@@ -10,6 +10,36 @@ https://godoc.org/cloud.google.com/go/storage
 
 gcloud functions deploy func_submit --region=europe-west1 --trigger-http --entry-point=handle_request --memory=128MB --runtime=python37 --source=func_submit 
 
+training_input = {
+    'scaleTier': 'BASIC',
+    'packageUris': ['gs://models.stufff.review/packages/default-1/default-1.tar.gz'],
+    'pythonModule': 'model.task',
+    'args': [
+      '--model-id', '26144595808e',
+      '--model-rev','1'
+    ],
+    'region': 'europe-west1',
+    "jobDir": 'gs://models.stufff.review/26144595808e/26144595808e/default-1',
+    'runtimeVersion': '1.12',
+    'pythonVersion': '2.7'
+  }
+	
+{
+	"projectId":"stufff-review",
+	"jobId":"M26144595808e_default_5",
+	"scaleTier": "BASIC",
+    "packageUris": ["gs://models.stufff.review/packages/default-1/default-1.tar.gz"],
+    "pythonModule": "model.task",
+    "args": [
+      "--model-id", "26144595808e",
+      "--model-rev","1"
+    ],
+    "region": "europe-west1",
+    "jobDir": "gs://models.stufff.review/26144595808e/26144595808e/default-1",
+    "runtimeVersion": "1.12",
+    "pythonVersion": "2.7"
+}
+
 [
 	{
 		"event": "sign-up",

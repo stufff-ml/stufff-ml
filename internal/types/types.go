@@ -118,4 +118,17 @@ type (
 		// internal metadata
 		Created int64 `json:"-"`
 	}
+
+	TrainingInput struct {
+		ProjectID      string   `json:"projectId"`
+		JobID          string   `json:"jobId"`
+		ScaleTier      string   `json:"scaleTier"`
+		PackageURIs    []string `json:"packageUris"`
+		PythonModule   string   `json:"pythonModule"`
+		Region         string   `json:"region"`
+		JobDir         string   `json:"jobDir"`
+		RuntimeVersion string   `json:"runtimeVersion"`
+		PythonVersion  string   `json:"pythonVersion"`
+		ModelArguments []string `json:"args"`
+	}
 )

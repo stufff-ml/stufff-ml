@@ -1,23 +1,23 @@
 package backend
 
 import (
+	"bytes"
 	"context"
-	"log"
+	"encoding/json"
+	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
-	"google.golang.org/api/googleapi"
-	ml "google.golang.org/api/ml/v1"
-
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/memcache"
+	"google.golang.org/appengine/urlfetch"
 
 	"github.com/majordomusio/commons/pkg/gae/logger"
 	"github.com/majordomusio/commons/pkg/util"
 
 	"github.com/stufff-ml/stufff-ml/internal/types"
+	"github.com/stufff-ml/stufff-ml/pkg/api"
 )
 
 // CreateModel creates an initial model definition
@@ -93,52 +93,40 @@ func SubmitModel(ctx context.Context, modelID string) error {
 	}
 
 	//
-	// Google ML
+	// Invoke Google ML API glue code
 	//
 
-	ts, err := google.DefaultTokenSource(ctx, "https://www.googleapis.com/auth/cloud-platform")
-	if err != nil {
-		log.Fatal(err)
+	modelPackage := fmt.Sprintf("%s-%d", model.Name, model.Revision)
+	jobID := fmt.Sprintf("%s_%s_%d", model.Name, model.ClientID, util.Timestamp())
+	jobDir := fmt.Sprintf("gs://%s/%s/%s", api.DefaultModelsBucket, model.ClientID, jobID)
+	uris := []string{fmt.Sprintf("gs://models.stufff.review/packages/%s/%s.tar.gz", modelPackage, modelPackage)}
+	args := []string{"--model-id", model.ClientID, "--model-event", model.Name}
+	trainingInput := types.TrainingInput{
+		ProjectID:      "stufff-review",
+		JobID:          jobID,
+		ScaleTier:      "BASIC",
+		PackageURIs:    uris,
+		PythonModule:   "model.task",
+		Region:         "europe-west1",
+		JobDir:         jobDir,
+		RuntimeVersion: "1.12",
+		PythonVersion:  "2.7",
+		ModelArguments: args,
 	}
-	client := oauth2.NewClient(ctx, ts)
+	b, _ := json.Marshal(trainingInput)
 
-	/*
-		data, err := ioutil.ReadFile("../../test_user.json")
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		creds, err := google.CredentialsFromJSON(ctx, data, "https://www.googleapis.com/auth/cloud-platform")
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		client := &http.Client{
-			Transport: &oauth2.Transport{
-				Source: creds.TokenSource,
-				//Source: google.AppEngineTokenSource(ctx, "https://www.googleapis.com/auth/cloud-platform"),
-				Base: &urlfetch.Transport{
-					Context: ctx,
-				},
-			},
-		}
-	*/
-
-	//mlService, err := ml.New(urlfetch.Client(ctx))
-	mlService, err := ml.New(client)
+	client := urlfetch.Client(ctx)
+	client.Timeout = 55000
+	req, _ := http.NewRequest("POST", "https://europe-west1-stufff-review.cloudfunctions.net/func_submit", bytes.NewBuffer(b))
+	req.Header.Add("Content-Type", "application/json")
+	resp, err := client.Do(req)
 	if err != nil {
-		logger.Warning(ctx, topic, "Could not create client for ML service. Model='%s'", modelID)
+		logger.Warning(ctx, topic, "Error submitting job. Model='%s'. Error=%s", modelID, err.Error())
 		return err
 	}
+	defer resp.Body.Close()
 
-	call := mlService.Projects.Jobs.List("projects/stufff-ml")
-	resp, e := call.Do(googleapi.Trace("abcd1234"))
-	//config := mlService.Projects.GetConfig("projects/stufff-ml")
-
-	//getConfig := config.Context(ctx)
-	//resp, e := getConfig.Do(googleapi.Trace("abcd1234"))
-
-	logger.Info(ctx, topic, "+++ ", ts, resp, e)
+	logger.Info(ctx, topic, "+++ DEBUG %d", resp.StatusCode)
 
 	// update metadata
 	err = markTrained(ctx, clientID, name, 0, util.IncT(util.Timestamp(), model.TrainingSchedule))
