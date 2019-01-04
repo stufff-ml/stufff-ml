@@ -4,6 +4,9 @@ import (
 	"golang.org/x/net/context"
 
 	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/taskqueue"
+
+	"github.com/majordomusio/commons/pkg/gae/logger"
 
 	"github.com/stufff-ml/stufff-ml/internal/types"
 )
@@ -36,4 +39,15 @@ func PredictionKeyString(clientID, domain, entityID, revision string) string {
 // PredictionKey key on collection PREDICTIONS
 func PredictionKey(ctx context.Context, k string) *datastore.Key {
 	return datastore.NewKey(ctx, types.DatastorePredictions, k, 0, nil)
+}
+
+// ScheduleJob is a shorthand to create a background job
+func ScheduleJob(ctx context.Context, queue, request string) error {
+	t := taskqueue.NewPOSTTask(request, nil)
+	_, err := taskqueue.Add(ctx, t, queue)
+	if err != nil {
+		logger.Error(ctx, "jobs.schedule", err.Error())
+	}
+
+	return err
 }

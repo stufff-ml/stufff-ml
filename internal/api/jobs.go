@@ -11,7 +11,6 @@ import (
 	"github.com/stufff-ml/stufff-ml/pkg/helper"
 
 	"github.com/stufff-ml/stufff-ml/internal/backend"
-	"github.com/stufff-ml/stufff-ml/internal/jobs"
 	"github.com/stufff-ml/stufff-ml/internal/types"
 )
 
@@ -40,11 +39,11 @@ func JobEventsExportEndpoint(c *gin.Context) {
 
 		if n == types.ExportBatchSize {
 			// more to export, do not merge yet
-			jobs.ScheduleJob(ctx, types.BackgroundWorkQueue, a.JobsBaseURL+"/export?id="+exportID)
+			backend.ScheduleJob(ctx, types.BackgroundWorkQueue, a.JobsBaseURL+"/export?id="+exportID)
 			logger.Info(ctx, topic, "Re-scheduled export of new events. Export='%s'", exportID)
 		} else {
 			// schedule merging of files
-			jobs.ScheduleJob(ctx, types.BackgroundWorkQueue, a.JobsBaseURL+"/merge?id="+exportID)
+			backend.ScheduleJob(ctx, types.BackgroundWorkQueue, a.JobsBaseURL+"/merge?id="+exportID)
 			logger.Info(ctx, topic, "Scheduled merge of new events. Export='%s'", exportID)
 		}
 	}

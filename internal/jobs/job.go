@@ -4,9 +4,6 @@ import (
 	"golang.org/x/net/context"
 
 	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/taskqueue"
-
-	"github.com/majordomusio/commons/pkg/gae/logger"
 )
 
 const (
@@ -49,16 +46,5 @@ func UpdateLastRun(ctx context.Context, name string, ts int64) error {
 		job.LastRun = ts
 	}
 	_, err = datastore.Put(ctx, key, &job)
-	return err
-}
-
-// ScheduleJob is a shorthand to create a background job
-func ScheduleJob(ctx context.Context, queue, request string) error {
-	t := taskqueue.NewPOSTTask(request, nil)
-	_, err := taskqueue.Add(ctx, t, queue)
-	if err != nil {
-		logger.Error(ctx, "jobs.schedule", err.Error())
-	}
-
 	return err
 }
