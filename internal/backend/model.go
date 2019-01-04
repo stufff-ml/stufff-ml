@@ -100,7 +100,7 @@ func SubmitModel(ctx context.Context, modelID string) error {
 	jobID := fmt.Sprintf("%s_%s_%d", model.Name, model.ClientID, util.Timestamp())
 	jobDir := fmt.Sprintf("gs://%s/%s/%s", api.DefaultModelsBucket, model.ClientID, jobID)
 	uris := []string{fmt.Sprintf("gs://models.stufff.review/packages/%s/%s.tar.gz", modelPackage, modelPackage)}
-	args := []string{"--model-id", model.ClientID, "--model-event", model.Name}
+	args := []string{"--client-id", model.ClientID, "--model-name", model.Name, "--job-id", jobID}
 	trainingInput := types.TrainingInput{
 		ProjectID:      "stufff-review",
 		JobID:          jobID,
