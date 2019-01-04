@@ -20,19 +20,23 @@ func init() {
 	// Recovery middleware recovers from any panics and writes a 500 if there was one.
 	router.Use(gin.Recovery())
 
-	// default endpoints that are not part of the API namespace
-	router.GET("/", api.DefaultEndpoint)
-	router.GET("/robots.txt", api.RobotsEndpoint)
-
 	// namespace /api/1
 	apiNamespace := router.Group(a.APIBaseURL)
+
+	// events
 	apiNamespace.GET("/events", api.GetEventsEndpoint)
 	apiNamespace.POST("/events", api.PostEventsEndpoint)
-	apiNamespace.POST("/predict", api.GetPredictionEndpoint)
 
-	// /_i/1/batch
-	batchNamespace := router.Group(a.BatchBaseURL)
-	batchNamespace.POST("/predictions", api.PostPredictionsEndpoint)
+	// client
+	apiNamespace.GET("/client/create", api.ClientCreateEndpoint)
+
+	// namespace /_a
+	adminNamespace := router.Group(a.AdminBaseURL)
+	adminNamespace.GET("/init", api.InitEndpoint)
+
+	//
+	// internal routes, not part of the API
+	//
 
 	// /_i/1/scheduler
 	schedulerNamespace := router.Group(a.SchedulerBaseURL)
@@ -43,12 +47,15 @@ func init() {
 	jobsNamespace.POST("/export", api.JobEventsExportEndpoint)
 	jobsNamespace.POST("/merge", api.JobEventsMergeEndpoint)
 
-	// namespace /_a
-	adminNamespace := router.Group(a.AdminBaseURL)
-	adminNamespace.GET("/init", api.InitEndpoint)
-	adminNamespace.GET("/client.create", api.ClientCreateEndpoint)
+	// default endpoints that are not part of the API namespace
+	router.GET("/", api.DefaultEndpoint)
+	router.GET("/robots.txt", api.RobotsEndpoint)
 
 	// ready, start taking requests
 	http.Handle("/", router)
-
 }
+
+// /_i/1/batch
+//batchNamespace := router.Group(a.BatchBaseURL)
+//batchNamespace.POST("/predictions", api.PostPredictionsEndpoint)
+// apiNamespace.POST("/predict", api.GetPredictionEndpoint)

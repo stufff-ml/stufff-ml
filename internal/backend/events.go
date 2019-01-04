@@ -117,7 +117,7 @@ func ExportEvents(ctx context.Context, exportID string) (int, error) {
 
 	// monster query
 	var q *datastore.Query
-	if event == "all" {
+	if event == types.DefaultExport {
 		q = datastore.NewQuery(types.DatastoreEvents).Filter("ClientID =", clientID).Filter("Timestamp >", start).Limit(types.ExportBatchSize).Order("Timestamp")
 	} else {
 		q = datastore.NewQuery(types.DatastoreEvents).Filter("ClientID =", clientID).Filter("Event =", event).Filter("Timestamp >", start).Limit(types.ExportBatchSize).Order("Timestamp")
@@ -197,7 +197,7 @@ func MergeEvents(ctx context.Context, exportID string) error {
 	defer w.Close()
 
 	// query blobs
-	q := storage.Query{Prefix: event}
+	q := storage.Query{Prefix: clientID + "/" + event}
 	it := sourceBucket.Objects(ctx, &q)
 
 	// merge the result

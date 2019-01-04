@@ -36,6 +36,9 @@ const (
 
 	// ExportBatchSize is the number of events to be exported in one job
 	ExportBatchSize int = 10001
+
+	// DefaultExport is the event type used to export everything
+	DefaultExport string = "default"
 )
 
 type (

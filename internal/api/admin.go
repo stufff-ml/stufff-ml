@@ -18,7 +18,7 @@ import (
 func InitEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
 
-	token := GetToken(ctx, c)
+	token := helper.GetToken(ctx, c)
 	if token == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
 		return
@@ -51,7 +51,7 @@ func InitEndpoint(c *gin.Context) {
 func ClientCreateEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
 
-	token := GetToken(ctx, c)
+	token := helper.GetToken(ctx, c)
 	if token == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
 		return
@@ -67,13 +67,13 @@ func ClientCreateEndpoint(c *gin.Context) {
 		return
 	}
 
-	_, err = backend.CreateModel(ctx, clientID, "default")
+	_, err = backend.CreateModel(ctx, clientID, types.DefaultExport)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "error"})
 		return
 	}
 
-	_, err = backend.CreateExport(ctx, clientID, "all")
+	_, err = backend.CreateExport(ctx, clientID, types.DefaultExport)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "error"})
 		return

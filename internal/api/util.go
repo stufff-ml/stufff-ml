@@ -1,36 +1,46 @@
 package api
 
 import (
-	"context"
-	"net/http"
+	"strings"
 
-	"github.com/gin-gonic/gin"
+	"golang.org/x/net/context"
 
+	"github.com/majordomusio/commons/pkg/errors"
 	"github.com/majordomusio/commons/pkg/gae/logger"
+	"github.com/majordomusio/commons/pkg/util"
+
+	"github.com/stufff-ml/stufff-ml/internal/backend"
+	"github.com/stufff-ml/stufff-ml/internal/types"
 )
 
-// standardAPIResponse is the default way to respond to API requests
-func standardAPIResponse(ctx context.Context, c *gin.Context, topic string, err error) {
-	if err == nil {
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
-	} else {
-		logger.Error(ctx, "api.response", err.Error())
-		// TODO proper error handling. For now 400 it is
-		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "msg": err.Error()})
-	}
-}
+// AuthenticateAndAuthorize authenicates and authorizes a client based on its token
+func authenticateAndAuthorize(ctx context.Context, scope, token string) (string, error) {
 
-// standardJSONResponse is the default way to respond to API requests
-func standardJSONResponse(ctx context.Context, c *gin.Context, topic string, res interface{}, err error) {
-	if err == nil {
-		if res == nil {
-			c.JSON(http.StatusOK, gin.H{"status": "ok"})
-		} else {
-			c.JSON(http.StatusOK, res)
-		}
-	} else {
-		logger.Error(ctx, "api.response", err.Error())
-		// TODO proper error handling. For now 400 it is
-		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "msg": err.Error()})
+	auth, err := backend.GetAuthorization(ctx, token)
+	if err != nil {
+		logger.Error(ctx, "backend.auth.authenticate", err.Error())
+		return "", errors.New("Invalid Token")
 	}
+
+	// check if the token has been revoked or is expired
+	if auth.Revoked {
+		return "", errors.New("Token has been revoked")
+	}
+
+	if auth.Expires > 0 {
+		if auth.Expires < util.Timestamp() {
+			return "", errors.New("Token has expired")
+		}
+	}
+
+	// check the authorization
+	if strings.Contains(auth.Scope, types.ScopeAdminFull) {
+		return auth.ClientID, nil
+	}
+
+	if strings.Contains(auth.Scope, scope) {
+		return auth.ClientID, nil
+	}
+
+	return "", errors.New("Not authorized")
 }
