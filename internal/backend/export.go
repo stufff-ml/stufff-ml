@@ -14,18 +14,18 @@ import (
 	"github.com/stufff-ml/stufff-ml/internal/types"
 )
 
-// CreateExport creates an initial export definition
-func CreateExport(ctx context.Context, clientID, event string) (*types.ExportDS, error) {
+// CreateDefaultExport creates an initial export definition
+func CreateDefaultExport(ctx context.Context, clientID string) (*types.ExportDS, error) {
 
 	model := types.ExportDS{
 		ClientID:       clientID,
-		Event:          event,
+		Event:          "default",
 		ExportSchedule: 15,
 		NextSchedule:   0,
 		Created:        util.Timestamp(),
 	}
 
-	key := ExportKey(ctx, clientID, event)
+	key := ExportKey(ctx, clientID, "default")
 	_, err := datastore.Put(ctx, key, &model)
 	if err != nil {
 		logger.Error(ctx, "backend.export.create", err.Error())

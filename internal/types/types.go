@@ -73,11 +73,16 @@ type (
 	// ModelDS represents a training model
 	ModelDS struct {
 		ClientID string `json:"client_id"`
-		Name     string `json:"name"`
+		Name     string `json:"name"` // name of the model and its version
 		Revision int    `json:"revision"`
 
+		// Model config params
+		ConfigParams []Parameters `json:"config_params"`
+		HyperParams  []Parameters `json:"hyper_params"`
+		Events       []string     `json:"events"` // list of known event types
 		// Metadata
 		TrainingSchedule int   `json:"training_schedule"`
+		LastTrained      int64 `json:"trained"`
 		NextSchedule     int64 `json:"next_schedule"`
 
 		// internal metadata
@@ -119,7 +124,15 @@ type (
 		Created int64 `json:"-"`
 	}
 
+	// Parameters is a generic struct to store configuration parameters
+	Parameters struct {
+		Key   string `json:"key"`
+		Value string `json:"value"`
+	}
+
+	// TrainingInput is used to submit a training job with Cloud ML
 	TrainingInput struct {
+		// FIXME: make this a generic struct for a generic glue function!
 		ProjectID      string   `json:"projectId"`
 		JobID          string   `json:"jobId"`
 		ScaleTier      string   `json:"scaleTier"`

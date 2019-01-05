@@ -67,13 +67,13 @@ func ClientCreateEndpoint(c *gin.Context) {
 		return
 	}
 
-	_, err = backend.CreateModel(ctx, clientID, types.DefaultExport)
+	_, err = backend.CreateDefaultModel(ctx, clientID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "error"})
 		return
 	}
 
-	_, err = backend.CreateExport(ctx, clientID, types.DefaultExport)
+	_, err = backend.CreateDefaultExport(ctx, clientID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "error"})
 		return

@@ -20,19 +20,35 @@ import (
 	"github.com/stufff-ml/stufff-ml/pkg/api"
 )
 
-// CreateModel creates an initial model definition
-func CreateModel(ctx context.Context, clientID, name string) (*types.ModelDS, error) {
+// CreateDefaultModel creates an initial model definition
+func CreateDefaultModel(ctx context.Context, clientID string) (*types.ModelDS, error) {
 
 	model := types.ModelDS{
-		ClientID:         clientID,
-		Name:             name,
-		Revision:         1,
-		TrainingSchedule: 60,
+		ClientID: clientID,
+		Name:     "default",
+		Revision: 1,
+		ConfigParams: []types.Parameters{
+			{Key: "PythonModule", Value: "model.task"},
+			{Key: "RuntimeVersion", Value: "1.12"},
+			{Key: "PythonVersion", Value: "2.7"},
+		},
+		HyperParams: []types.Parameters{
+			{Key: "weights", Value: "True"},
+			{Key: "latent_factors", Value: "5"},
+			{Key: "num_iters", Value: "20"},
+			{Key: "regularization", Value: "0.07"},
+			{Key: "unobs_weight", Value: "0.01"},
+			{Key: "wt_type", Value: "0"},
+			{Key: "feature_wt_factor", Value: "130.0"},
+			{Key: "feature_wt_exp", Value: "0.08"},
+		},
+		Events:           []string{"default"},
+		TrainingSchedule: 180,
 		NextSchedule:     0,
 		Created:          util.Timestamp(),
 	}
 
-	key := ModelKey(ctx, clientID, name)
+	key := ModelKey(ctx, clientID, "default")
 	_, err := datastore.Put(ctx, key, &model)
 	if err != nil {
 		logger.Error(ctx, "backend.model.create", err.Error())
@@ -40,7 +56,6 @@ func CreateModel(ctx context.Context, clientID, name string) (*types.ModelDS, er
 	}
 
 	return &model, nil
-
 }
 
 // GetModel returns a model based on the clientID and domain
@@ -121,21 +136,23 @@ func SubmitModel(ctx context.Context, modelID string) error {
 	req.Header.Add("Content-Type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
-		logger.Warning(ctx, topic, "Error submitting job. Model='%s'. Error=%s", modelID, err.Error())
+		logger.Warning(ctx, topic, "Error submitting model %s.%s for training. Job ID='%s'. Error=%s", clientID, name, jobID, err.Error())
 		return err
 	}
 	defer resp.Body.Close()
 
-	logger.Info(ctx, topic, "+++ DEBUG %d", resp.StatusCode)
+	if resp.StatusCode == http.StatusOK {
+		// update metadata
+		err = markTrained(ctx, clientID, name, util.Timestamp(), util.IncT(util.Timestamp(), model.TrainingSchedule))
+		if err != nil {
+			logger.Warning(ctx, topic, "Could not update metadata. Model='%s'", modelID)
+			return err
+		}
 
-	// update metadata
-	err = markTrained(ctx, clientID, name, 0, util.IncT(util.Timestamp(), model.TrainingSchedule))
-	if err != nil {
-		logger.Warning(ctx, topic, "Could not update metadata. Model='%s'", modelID)
-		return err
+		logger.Info(ctx, topic, "Submitted model %s.%s for training. Job ID='%s'", clientID, name, jobID)
+	} else {
+		logger.Warning(ctx, topic, "Error submitting model %s.%s for training. Job ID='%s'", clientID, name, jobID)
 	}
-
-	logger.Info(ctx, topic, "Submitted model %s.%s for training. Client='%s'", clientID, name, clientID)
 
 	return nil
 }
@@ -150,7 +167,7 @@ func markTrained(ctx context.Context, clientID, name string, trained, next int64
 		return err
 	}
 
-	//model.LastTrained = trained
+	model.LastTrained = trained
 	model.NextSchedule = next
 
 	_, err = datastore.Put(ctx, key, &model)
