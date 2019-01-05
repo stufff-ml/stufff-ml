@@ -130,18 +130,13 @@ type (
 		Value string `json:"value"`
 	}
 
-	// TrainingInput is used to submit a training job with Cloud ML
-	TrainingInput struct {
-		// FIXME: make this a generic struct for a generic glue function!
-		ProjectID      string   `json:"projectId"`
-		JobID          string   `json:"jobId"`
-		ScaleTier      string   `json:"scaleTier"`
-		PackageURIs    []string `json:"packageUris"`
-		PythonModule   string   `json:"pythonModule"`
-		Region         string   `json:"region"`
-		JobDir         string   `json:"jobDir"`
-		RuntimeVersion string   `json:"runtimeVersion"`
-		PythonVersion  string   `json:"pythonVersion"`
-		ModelArguments []string `json:"args"`
+	GenericRequest struct {
+		ReqID   string      `json:"id"`
+		Payload interface{} `json:"payload"`
+	}
+
+	GenericResponse struct {
+		Status  string `json:"status"` // ok | error
+		Message string `json:"message,omitempty"`
 	}
 )

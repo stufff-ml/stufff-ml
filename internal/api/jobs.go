@@ -85,7 +85,7 @@ func JobModelTrainingEndpoint(c *gin.Context) {
 		return
 	}
 
-	err := backend.SubmitModel(ctx, modelID)
+	err := backend.TrainModel(ctx, modelID)
 	if err != nil {
 		logger.Warning(ctx, topic, "Issues submitting model for training. Model='%s'. Err=%s", modelID, err.Error())
 		helper.StandardAPIResponse(ctx, c, topic, err)

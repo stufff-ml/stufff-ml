@@ -1,23 +1,17 @@
 package backend
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/memcache"
-	"google.golang.org/appengine/urlfetch"
 
 	"github.com/majordomusio/commons/pkg/gae/logger"
 	"github.com/majordomusio/commons/pkg/util"
 
 	"github.com/stufff-ml/stufff-ml/internal/types"
-	"github.com/stufff-ml/stufff-ml/pkg/api"
 )
 
 // CreateDefaultModel creates an initial model definition
@@ -91,70 +85,6 @@ func GetModel(ctx context.Context, clientID, name string) (*types.ModelDS, error
 	}
 
 	return &model, nil
-}
-
-// SubmitModel submits a model for training to Google ML
-func SubmitModel(ctx context.Context, modelID string) error {
-	topic := "backend.model.train"
-
-	p := strings.Split(modelID, ".")
-	clientID := p[0]
-	name := p[1]
-
-	model, err := GetModel(ctx, clientID, name)
-	if err != nil {
-		logger.Warning(ctx, topic, "Model not found. Model='%s'", modelID)
-		return err
-	}
-
-	//
-	// Invoke Google ML API glue code
-	//
-
-	modelPackage := fmt.Sprintf("%s-%d", model.Name, model.Revision)
-	jobID := fmt.Sprintf("%s_%s_%d", model.Name, model.ClientID, util.Timestamp())
-	jobDir := fmt.Sprintf("gs://%s/%s/%s", api.DefaultModelsBucket, model.ClientID, jobID)
-	uris := []string{fmt.Sprintf("gs://models.stufff.review/packages/%s/%s.tar.gz", modelPackage, modelPackage)}
-	args := []string{"--client-id", model.ClientID, "--model-name", model.Name, "--job-id", jobID}
-	trainingInput := types.TrainingInput{
-		ProjectID:      "stufff-review",
-		JobID:          jobID,
-		ScaleTier:      "BASIC",
-		PackageURIs:    uris,
-		PythonModule:   "model.task",
-		Region:         "europe-west1",
-		JobDir:         jobDir,
-		RuntimeVersion: "1.12",
-		PythonVersion:  "2.7",
-		ModelArguments: args,
-	}
-	b, _ := json.Marshal(trainingInput)
-
-	client := urlfetch.Client(ctx)
-	client.Timeout = 55000
-	req, _ := http.NewRequest("POST", "https://europe-west1-stufff-review.cloudfunctions.net/func_submit", bytes.NewBuffer(b))
-	req.Header.Add("Content-Type", "application/json")
-	resp, err := client.Do(req)
-	if err != nil {
-		logger.Warning(ctx, topic, "Error submitting model %s.%s for training. Job ID='%s'. Error=%s", clientID, name, jobID, err.Error())
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusOK {
-		// update metadata
-		err = markTrained(ctx, clientID, name, util.Timestamp(), util.IncT(util.Timestamp(), model.TrainingSchedule))
-		if err != nil {
-			logger.Warning(ctx, topic, "Could not update metadata. Model='%s'", modelID)
-			return err
-		}
-
-		logger.Info(ctx, topic, "Submitted model %s.%s for training. Job ID='%s'", clientID, name, jobID)
-	} else {
-		logger.Warning(ctx, topic, "Error submitting model %s.%s for training. Job ID='%s'", clientID, name, jobID)
-	}
-
-	return nil
 }
 
 // MarkTrained writes an export record back to the datastore with updated metadata

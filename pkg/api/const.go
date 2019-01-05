@@ -19,4 +19,6 @@ const (
 	DefaultExportBucket string = "exports.stufff.review"
 	// DefaultModelsBucket is the bucket for model data
 	DefaultModelsBucket string = "models.stufff.review"
+	// DefaultResourcesBucket is the bucket for binary data etc.
+	DefaultResourcesBucket string = "resources.stufff.review"
 )

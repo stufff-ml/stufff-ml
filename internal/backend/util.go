@@ -1,10 +1,17 @@
 package backend
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"os"
+
 	"golang.org/x/net/context"
 
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/taskqueue"
+	"google.golang.org/appengine/urlfetch"
 
 	"github.com/majordomusio/commons/pkg/gae/logger"
 
@@ -50,4 +57,35 @@ func ScheduleJob(ctx context.Context, queue, request string) error {
 	}
 
 	return err
+}
+
+// InvokeFunction calls a Cloud Function and posts data to it
+func InvokeFunction(ctx context.Context, function, reqID string, payload interface{}) (int, *types.GenericResponse) {
+	topic := "invoke.function"
+	region := os.Getenv("REGION")
+	projectID := os.Getenv("PROJECT_ID")
+	uri := fmt.Sprintf("https://%s-%s.cloudfunctions.net/%s", region, projectID, function)
+
+	r := types.GenericRequest{
+		ReqID:   reqID,
+		Payload: payload,
+	}
+	b, _ := json.Marshal(r)
+
+	client := urlfetch.Client(ctx)
+	client.Timeout = 55000
+
+	req, _ := http.NewRequest("POST", uri, bytes.NewBuffer(b))
+	req.Header.Add("Content-Type", "application/json")
+	resp, err := client.Do(req)
+	if err != nil {
+		logger.Error(ctx, topic, "ReqID=%s. Error=%s", reqID, err.Error())
+		return http.StatusInternalServerError, nil
+	}
+	defer resp.Body.Close()
+
+	var response types.GenericResponse
+	json.NewDecoder(resp.Body).Decode(response)
+
+	return resp.StatusCode, &response
 }

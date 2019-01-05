@@ -15,10 +15,9 @@ func DebugEndpoint(c *gin.Context) {
 	topic := "DEBUG"
 	ctx := appengine.NewContext(c.Request)
 
-	err := backend.SubmitModel(ctx, "b8e64ec88095.default")
+	err := backend.TrainModel(ctx, "869746c7855d.default")
 
 	helper.StandardAPIResponse(ctx, c, topic, err)
-
 }
 
 // MigrateEndpoint is for testing only
