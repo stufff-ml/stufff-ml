@@ -55,7 +55,7 @@ func TrainModel(ctx context.Context, modelID string) error {
 	trainingInput := TrainingInput{
 		ScaleTier:      "BASIC",
 		PackageURIs:    uris,
-		PythonModule:   "model.task",
+		PythonModule:   "model.train",
 		Region:         region,
 		JobDir:         jobDir,
 		RuntimeVersion: "1.12",

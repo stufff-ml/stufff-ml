@@ -92,6 +92,7 @@ func StoreEvent(ctx context.Context, clientID string, event *api.Event) error {
 // ExportEvents exports events in time range ]start, end] and writes it to a csv file on Cloud Storage
 func ExportEvents(ctx context.Context, exportID string) (int, error) {
 	topic := "backend.events.export"
+	set := make(map[string]bool)
 
 	p := strings.Split(exportID, ".")
 	clientID := p[0]
@@ -145,6 +146,7 @@ func ExportEvents(ctx context.Context, exportID string) (int, error) {
 		}
 
 		w.Write([]byte(e.ToCSV()))
+		set[e.Event] = true
 
 		end = e.Timestamp
 		numEvents++
@@ -156,10 +158,23 @@ func ExportEvents(ctx context.Context, exportID string) (int, error) {
 		bucket.Object(fileName).Delete(ctx)
 	}
 
+	// create new exports if a new event type was found
+	for e := range set {
+		q = datastore.NewQuery(types.DatastoreExports).Filter("ClientID =", clientID).Filter("Event =", e)
+		n, err := q.Count(ctx)
+		if err != nil {
+			logger.Warning(ctx, topic, "Could not query exports. Export='%s.%s'", clientID, e)
+		}
+
+		if n == 0 {
+			CreateExport(ctx, clientID, e)
+		}
+	}
+
 	logger.Info(ctx, topic, "Exported %d events. File='%s'", numEvents, fileName)
 
 	// update metadata
-	err = markExported(ctx, clientID, event, end, util.IncT(util.Timestamp(), export.ExportSchedule))
+	err = markExported(ctx, clientID, event, numEvents, end, util.IncT(util.Timestamp(), export.ExportSchedule))
 	if err != nil {
 		logger.Warning(ctx, topic, "Could not update metadata. Export='%s'", exportID)
 		return -1, err

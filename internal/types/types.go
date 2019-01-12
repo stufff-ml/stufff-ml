@@ -94,6 +94,9 @@ type (
 		ClientID string `json:"client_id"`
 		Event    string `json:"event"`
 
+		ExportedLast  int `json:"exported_last"`
+		ExportedTotal int `json:"exported_total"`
+
 		// Metadata
 		ExportSchedule int   `json:"export_schedule"`
 		NextSchedule   int64 `json:"next_schedule"`

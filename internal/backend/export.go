@@ -16,16 +16,23 @@ import (
 
 // CreateDefaultExport creates an initial export definition
 func CreateDefaultExport(ctx context.Context, clientID string) (*types.ExportDS, error) {
+	return CreateExport(ctx, clientID, "default")
+}
+
+// CreateExport creates a new export definition
+func CreateExport(ctx context.Context, clientID, event string) (*types.ExportDS, error) {
 
 	model := types.ExportDS{
 		ClientID:       clientID,
-		Event:          "default",
+		Event:          event,
+		ExportedLast:   0,
+		ExportedTotal:  0,
 		ExportSchedule: 15,
 		NextSchedule:   0,
 		Created:        util.Timestamp(),
 	}
 
-	key := ExportKey(ctx, clientID, "default")
+	key := ExportKey(ctx, clientID, event)
 	_, err := datastore.Put(ctx, key, &model)
 	if err != nil {
 		logger.Error(ctx, "backend.export.create", err.Error())
@@ -71,7 +78,7 @@ func GetExport(ctx context.Context, clientID, event string) (*types.ExportDS, er
 }
 
 // markExported writes an export record back to the datastore with updated metadata
-func markExported(ctx context.Context, clientID, event string, exported, next int64) error {
+func markExported(ctx context.Context, clientID, event string, exported int, ts, next int64) error {
 	var export types.ExportDS
 
 	key := ExportKey(ctx, clientID, event)
@@ -80,7 +87,10 @@ func markExported(ctx context.Context, clientID, event string, exported, next in
 		return err
 	}
 
-	export.LastExported = exported
+	export.ExportedLast = exported
+	export.ExportedTotal += exported
+
+	export.LastExported = ts
 	export.NextSchedule = next
 
 	_, err = datastore.Put(ctx, key, &export)
