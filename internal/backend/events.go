@@ -124,7 +124,7 @@ func ExportEvents(ctx context.Context, exportID string) (int, error) {
 		q = datastore.NewQuery(types.DatastoreEvents).Filter("ClientID =", clientID).Filter("Event =", event).Filter("Timestamp >", start).Limit(types.ExportBatchSize).Order("Timestamp")
 	}
 
-	fileName := fmt.Sprintf("%s/%s.%d.csv", clientID, event, start)
+	fileName := fmt.Sprintf("%s/parts/%s.%d.csv", clientID, event, start)
 	bucket := client.Bucket(api.DefaultExportBucket)
 
 	w := bucket.Object(fileName).NewWriter(ctx)
@@ -208,7 +208,7 @@ func MergeEvents(ctx context.Context, exportID string) error {
 
 	// buckets
 	sourceBucket := client.Bucket(api.DefaultExportBucket)
-	targetBucket := client.Bucket(api.DefaultModelsBucket)
+	targetBucket := client.Bucket(api.DefaultExportBucket)
 
 	// new target blob
 	fileName := fmt.Sprintf("%s/%s.csv", clientID, event)
@@ -217,7 +217,7 @@ func MergeEvents(ctx context.Context, exportID string) error {
 	defer w.Close()
 
 	// query blobs
-	q := storage.Query{Prefix: clientID + "/" + event}
+	q := storage.Query{Prefix: clientID + "/parts/" + event}
 	it := sourceBucket.Objects(ctx, &q)
 
 	// merge the result
