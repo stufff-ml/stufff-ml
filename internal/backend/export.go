@@ -25,7 +25,7 @@ func CreateExport(ctx context.Context, clientID, event string) (*types.ExportDS,
 	model := types.ExportDS{
 		ClientID:       clientID,
 		Event:          event,
-		ExportedLast:   0,
+		Exported:       0,
 		ExportedTotal:  0,
 		ExportSchedule: 15,
 		NextSchedule:   0,
@@ -87,7 +87,7 @@ func markExported(ctx context.Context, clientID, event string, exported int, ts,
 		return err
 	}
 
-	export.ExportedLast = exported
+	export.Exported = exported
 	export.ExportedTotal += exported
 
 	export.LastExported = ts

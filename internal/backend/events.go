@@ -167,7 +167,12 @@ func ExportEvents(ctx context.Context, exportID string) (int, error) {
 		}
 
 		if n == 0 {
-			CreateExport(ctx, clientID, e)
+			_, err := CreateExport(ctx, clientID, e)
+			if err != nil {
+				logger.Warning(ctx, topic, "Could not create new export. Export='%s.%s'", clientID, e)
+			} else {
+				logger.Info(ctx, topic, "Created a new export. Export='%s.%s'", clientID, e)
+			}
 		}
 	}
 

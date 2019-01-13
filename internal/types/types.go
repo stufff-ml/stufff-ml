@@ -82,8 +82,8 @@ type (
 		Events       []string     `json:"events"` // list of known event types
 		// Metadata
 		TrainingSchedule int   `json:"training_schedule"`
-		LastTrained      int64 `json:"trained"`
-		NextSchedule     int64 `json:"next_schedule"`
+		LastTrained      int64 `json:"last_trained"`
+		NextSchedule     int64 `json:"next"`
 
 		// internal metadata
 		Created int64 `json:"-"`
@@ -94,13 +94,13 @@ type (
 		ClientID string `json:"client_id"`
 		Event    string `json:"event"`
 
-		ExportedLast  int `json:"exported_last"`
+		Exported      int `json:"exported"`
 		ExportedTotal int `json:"exported_total"`
 
 		// Metadata
 		ExportSchedule int   `json:"export_schedule"`
-		NextSchedule   int64 `json:"next_schedule"`
-		LastExported   int64 `json:"exported"`
+		LastExported   int64 `json:"last_exported"`
+		NextSchedule   int64 `json:"next"`
 
 		// internal metadata
 		Created int64 `json:"-"`
