@@ -41,6 +41,8 @@ const (
 	Default string = "default"
 	// AllEvents is the event type used to export everything
 	AllEvents string = "all"
+	// DefaultRevision is the default version number for models
+	DefaultRevision int = 1
 )
 
 type (
@@ -64,7 +66,7 @@ type (
 		ClientID string `json:"client_id"`
 		Domain   string `json:"domain"`
 		EntityID string `json:"entity_id"`
-		Revision int    `json:"revision"`
+		Version  int    `json:"version"`
 
 		Items []api.ItemScore `datastore:",noindex" json:"items"`
 
@@ -79,7 +81,8 @@ type (
 		Revision int    `json:"revision"` // version of the model
 
 		// Model configuration
-		Events []string `json:"events"` // list of event types the model uses. Set to 'default'.
+		Version int      `json:"version"` // version of the model setup, params etc
+		Events  []string `json:"events"`  // list of event types the model uses. Set to 'default'.
 
 		// Model config params
 		ConfigParams []Parameters `json:"config_params"`

@@ -48,8 +48,8 @@ func TrainModel(ctx context.Context, modelID string) error {
 	region := os.Getenv("REGION")
 	jobID := fmt.Sprintf("%s_%s_%d", model.Name, model.ClientID, util.Timestamp())
 	jobDir := fmt.Sprintf("gs://%s/%s/%s", api.DefaultModelsBucket, model.ClientID, jobID)
-	modelPackage := fmt.Sprintf("%s-%d", model.Name, model.Revision)
-	uris := []string{fmt.Sprintf("gs://%s/packages/%s/%s.tar.gz", api.DefaultResourcesBucket, modelPackage, modelPackage)}
+	packageName := fmt.Sprintf("%s-%d", model.Name, model.Revision)
+	uris := []string{fmt.Sprintf("gs://%s/packages/%s/%s.tar.gz", api.DefaultResourcesBucket, packageName, packageName)}
 	args := []string{"--client-id", model.ClientID, "--model-name", model.Name, "--job-id", jobID}
 
 	trainingInput := TrainingInput{

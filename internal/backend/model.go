@@ -20,7 +20,7 @@ func CreateDefaultModel(ctx context.Context, clientID string) (*types.ModelDS, e
 	model := types.ModelDS{
 		ClientID: clientID,
 		Name:     types.Default,
-		Revision: 1,
+		Revision: types.DefaultRevision,
 		ConfigParams: []types.Parameters{
 			{Key: "PythonModule", Value: "model.task"},
 			{Key: "RuntimeVersion", Value: "1.12"},
@@ -37,6 +37,7 @@ func CreateDefaultModel(ctx context.Context, clientID string) (*types.ModelDS, e
 			{Key: "feature_wt_exp", Value: "0.08"},
 		},
 		Events:           []string{types.Default},
+		Version:          1,
 		TrainingSchedule: 180,
 		NextSchedule:     0,
 		Created:          util.Timestamp(),
