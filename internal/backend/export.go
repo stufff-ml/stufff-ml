@@ -16,7 +16,7 @@ import (
 
 // CreateDefaultExport creates an initial export definition
 func CreateDefaultExport(ctx context.Context, clientID string) (*types.ExportDS, error) {
-	return CreateExport(ctx, clientID, "default")
+	return CreateExport(ctx, clientID, types.AllEvents)
 }
 
 // CreateExport creates a new export definition

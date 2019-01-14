@@ -118,7 +118,7 @@ func ExportEvents(ctx context.Context, exportID string) (int, error) {
 
 	// monster query
 	var q *datastore.Query
-	if event == types.DefaultExport {
+	if event == types.AllEvents {
 		q = datastore.NewQuery(types.DatastoreEvents).Filter("ClientID =", clientID).Filter("Timestamp >", start).Limit(types.ExportBatchSize).Order("Timestamp")
 	} else {
 		q = datastore.NewQuery(types.DatastoreEvents).Filter("ClientID =", clientID).Filter("Event =", event).Filter("Timestamp >", start).Limit(types.ExportBatchSize).Order("Timestamp")

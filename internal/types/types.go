@@ -37,8 +37,10 @@ const (
 	// ExportBatchSize is the number of events to be exported in one job
 	ExportBatchSize int = 10001
 
-	// DefaultExport is the event type used to export everything
-	DefaultExport string = "default"
+	// Default is the key used to setup the default model etc
+	Default string = "default"
+	// AllEvents is the event type used to export everything
+	AllEvents string = "all"
 )
 
 type (
@@ -73,13 +75,16 @@ type (
 	// ModelDS represents a training model
 	ModelDS struct {
 		ClientID string `json:"client_id"`
-		Name     string `json:"name"` // name of the model and its version
-		Revision int    `json:"revision"`
+		Name     string `json:"name"`     // name of the model
+		Revision int    `json:"revision"` // version of the model
+
+		// Model configuration
+		Events []string `json:"events"` // list of event types the model uses. Set to 'default'.
 
 		// Model config params
 		ConfigParams []Parameters `json:"config_params"`
 		HyperParams  []Parameters `json:"hyper_params"`
-		Events       []string     `json:"events"` // list of known event types
+
 		// Metadata
 		TrainingSchedule int   `json:"training_schedule"`
 		LastTrained      int64 `json:"last_trained"`

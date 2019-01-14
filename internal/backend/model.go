@@ -19,7 +19,7 @@ func CreateDefaultModel(ctx context.Context, clientID string) (*types.ModelDS, e
 
 	model := types.ModelDS{
 		ClientID: clientID,
-		Name:     "default",
+		Name:     types.Default,
 		Revision: 1,
 		ConfigParams: []types.Parameters{
 			{Key: "PythonModule", Value: "model.task"},
@@ -36,13 +36,13 @@ func CreateDefaultModel(ctx context.Context, clientID string) (*types.ModelDS, e
 			{Key: "feature_wt_factor", Value: "130.0"},
 			{Key: "feature_wt_exp", Value: "0.08"},
 		},
-		Events:           []string{"default"},
+		Events:           []string{types.Default},
 		TrainingSchedule: 180,
 		NextSchedule:     0,
 		Created:          util.Timestamp(),
 	}
 
-	key := ModelKey(ctx, clientID, "default")
+	key := ModelKey(ctx, clientID, types.Default)
 	_, err := datastore.Put(ctx, key, &model)
 	if err != nil {
 		logger.Error(ctx, "backend.model.create", err.Error())
