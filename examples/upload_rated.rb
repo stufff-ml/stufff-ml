@@ -4,13 +4,12 @@ require 'json'
 require 'date'
 require 'csv'
 
-# ruby upload_rated.rb http://localhost:8080/api/1/events xoxo-ffffffff test.csv
-# ruby upload_rated.rb http://stufff-review.appspot.com/api/1/events xoxo-ffffffff test.csv
-# ruby upload_rated.rb http://stufff-review.appspot.com/api/1/events xoxo-foobarxx test.csv
+# ruby upload_rated.rb http://localhost:8080/api/1/events data_small.csv xoxo-...
+# ruby upload_rated.rb http://stufff-review.appspot.com/api/1/events data_small.csv xoxo-...
 
 endpoint = ARGV[0]
-token = ARGV[1]
-filename = ARGV[2]
+filename = ARGV[1]
+token = ARGV[2]
 batch_size = 100
 use_timestamp = false
 
