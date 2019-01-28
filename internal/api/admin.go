@@ -52,7 +52,8 @@ func ClientCreateEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
 
 	token := helper.GetToken(ctx, c)
-	if token == "" {
+	_, err := authenticateAndAuthorize(ctx, types.ScopeAdminFull, token)
+	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
 		return
 	}
@@ -61,7 +62,7 @@ func ClientCreateEndpoint(c *gin.Context) {
 	clientSecret, _ := helper.SimpleUUID()
 	t, _ := helper.RandomToken()
 
-	err := backend.CreateClientAndAuthentication(ctx, clientID, clientSecret, types.ScopeUserFull, t)
+	err = backend.CreateClientAndAuthentication(ctx, clientID, clientSecret, types.ScopeUserFull, t)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "error"})
 		return
