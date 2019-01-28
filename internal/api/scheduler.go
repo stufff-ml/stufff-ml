@@ -33,7 +33,7 @@ func ScheduleEventsExportEndpoint(c *gin.Context) {
 		if len(exports) > 0 {
 			for i := range exports {
 				exportID := fmt.Sprintf("%s.%s", exports[i].ClientID, exports[i].Event)
-				backend.ScheduleJob(ctx, types.BackgroundWorkQueue, a.JobsBaseURL+"/export?id="+exportID)
+				backend.ScheduleJob(ctx, types.BackgroundWorkQueue, a.JobsPrefix+"/export?id="+exportID)
 
 				logger.Info(ctx, topic, "Scheduled export of new events. Export='%s'", exportID)
 			}
@@ -61,7 +61,7 @@ func ScheduleModelTrainingEndpoint(c *gin.Context) {
 		if len(models) > 0 {
 			for i := range models {
 				modelID := fmt.Sprintf("%s.%s", models[i].ClientID, models[i].Name)
-				backend.ScheduleJob(ctx, types.BackgroundWorkQueue, a.JobsBaseURL+"/train?id="+modelID)
+				backend.ScheduleJob(ctx, types.BackgroundWorkQueue, a.JobsPrefix+"/train?id="+modelID)
 
 				logger.Info(ctx, topic, "Scheduled model training. Model='%s'", modelID)
 			}

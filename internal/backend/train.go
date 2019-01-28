@@ -49,8 +49,9 @@ func TrainModel(ctx context.Context, modelID string) error {
 	jobID := fmt.Sprintf("%s_%s_%d", model.Name, model.ClientID, util.Timestamp())
 	jobDir := fmt.Sprintf("gs://%s/%s/%s", api.DefaultModelsBucket, model.ClientID, jobID)
 	packageName := fmt.Sprintf("%s-%d", model.Name, model.Revision)
+	callback := fmt.Sprintf("%s/%s/train?id=%s&job=%s", api.APIBaseURL, api.CallbackPrefix, model.ClientID, jobID)
 	uris := []string{fmt.Sprintf("gs://%s/packages/%s/%s.tar.gz", api.DefaultResourcesBucket, packageName, packageName)}
-	args := []string{"--client-id", model.ClientID, "--model-name", model.Name, "--job-id", jobID}
+	args := []string{"--client-id", model.ClientID, "--model-name", model.Name, "--job-id", jobID, "--callback", callback}
 
 	trainingInput := TrainingInput{
 		ScaleTier:      "BASIC",

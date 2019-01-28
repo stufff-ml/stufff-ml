@@ -39,11 +39,11 @@ func JobEventsExportEndpoint(c *gin.Context) {
 
 		if n == types.ExportBatchSize {
 			// more to export, do not merge yet
-			backend.ScheduleJob(ctx, types.BackgroundWorkQueue, a.JobsBaseURL+"/export?id="+exportID)
+			backend.ScheduleJob(ctx, types.BackgroundWorkQueue, a.JobsPrefix+"/export?id="+exportID)
 			logger.Info(ctx, topic, "Re-scheduled export of new events. Export='%s'", exportID)
 		} else {
 			// schedule merging of files
-			backend.ScheduleJob(ctx, types.BackgroundWorkQueue, a.JobsBaseURL+"/merge?id="+exportID)
+			backend.ScheduleJob(ctx, types.BackgroundWorkQueue, a.JobsPrefix+"/merge?id="+exportID)
 			logger.Info(ctx, topic, "Scheduled merge of new events. Export='%s'", exportID)
 		}
 	}

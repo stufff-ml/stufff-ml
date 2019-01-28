@@ -21,7 +21,7 @@ func init() {
 	router.Use(gin.Recovery())
 
 	// namespace /api/1
-	apiNamespace := router.Group(a.APIBaseURL)
+	apiNamespace := router.Group(a.APIPrefix)
 
 	// events
 	apiNamespace.GET("/events", api.GetEventsEndpoint)
@@ -31,20 +31,24 @@ func init() {
 	apiNamespace.GET("/client/create", api.ClientCreateEndpoint)
 
 	// namespace /_a
-	adminNamespace := router.Group(a.AdminBaseURL)
+	adminNamespace := router.Group(a.AdminAPIPrefix)
 	adminNamespace.GET("/init", api.InitEndpoint)
 
 	//
-	// internal routes, not part of the API
+	// internal routes, not part of the official API
 	//
 
+	// /_i/1/callback
+	callbackNamespace := router.Group(a.CallbackPrefix)
+	callbackNamespace.GET("/train", api.ModelTrainingCallback)
+
 	// /_i/1/scheduler
-	schedulerNamespace := router.Group(a.SchedulerBaseURL)
+	schedulerNamespace := router.Group(a.SchedulerPrefix)
 	schedulerNamespace.GET("/export", api.ScheduleEventsExportEndpoint)
 	schedulerNamespace.GET("/train", api.ScheduleModelTrainingEndpoint)
 
 	// /_i/1/jobs
-	jobsNamespace := router.Group(a.JobsBaseURL)
+	jobsNamespace := router.Group(a.JobsPrefix)
 	jobsNamespace.POST("/export", api.JobEventsExportEndpoint)
 	jobsNamespace.POST("/merge", api.JobEventsMergeEndpoint)
 	jobsNamespace.POST("/train", api.JobModelTrainingEndpoint)
@@ -53,13 +57,13 @@ func init() {
 	router.GET("/", api.DefaultEndpoint)
 	router.GET("/robots.txt", api.RobotsEndpoint)
 
-	router.GET("/debug", api.DebugEndpoint)
+	//router.GET("/debug", api.DebugEndpoint)
 
 	// ready, start taking requests
 	http.Handle("/", router)
 }
 
 // /_i/1/batch
-//batchNamespace := router.Group(a.BatchBaseURL)
+//batchNamespace := router.Group(a.BatchPrefix)
 //batchNamespace.POST("/predictions", api.PostPredictionsEndpoint)
 // apiNamespace.POST("/predict", api.GetPredictionEndpoint)

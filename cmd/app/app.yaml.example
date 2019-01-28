@@ -9,4 +9,6 @@ handlers:
 
 env_variables:
   ADMIN_CLIENT_TOKEN: 'xoxo-1234'
+  REGION: 'europe-west1'
+  PROJECT_ID: 'name-of-project'
   
