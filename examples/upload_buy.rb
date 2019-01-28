@@ -10,7 +10,7 @@ require 'csv'
 endpoint = ARGV[0]
 filename = ARGV[1]
 token = ARGV[2]
-batch_size = 100
+batch_size = 200
 use_timestamp = false
 
 # prepare the connection
