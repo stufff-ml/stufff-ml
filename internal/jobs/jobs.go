@@ -1,4 +1,4 @@
-package api
+package jobs
 
 import (
 	"github.com/gin-gonic/gin"
@@ -14,8 +14,8 @@ import (
 	"github.com/stufff-ml/stufff-ml/internal/types"
 )
 
-// JobEventsExportEndpoint retrieves all raw events within a given time range
-func JobEventsExportEndpoint(c *gin.Context) {
+// EventsExportEndpoint retrieves all raw events within a given time range
+func EventsExportEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
 	topic := "jobs.events.export"
 
@@ -51,8 +51,8 @@ func JobEventsExportEndpoint(c *gin.Context) {
 	helper.StandardAPIResponse(ctx, c, topic, err)
 }
 
-// JobEventsMergeEndpoint retrieves all exported events files and merges them into one file
-func JobEventsMergeEndpoint(c *gin.Context) {
+// EventsMergeEndpoint retrieves all exported events files and merges them into one file
+func EventsMergeEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
 	topic := "jobs.events.merge"
 
@@ -72,8 +72,8 @@ func JobEventsMergeEndpoint(c *gin.Context) {
 	helper.StandardAPIResponse(ctx, c, topic, err)
 }
 
-// JobModelTrainingEndpoint schedules the training of a model
-func JobModelTrainingEndpoint(c *gin.Context) {
+// ModelTrainingEndpoint schedules the training of a model
+func ModelTrainingEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
 	topic := "jobs.model.training"
 

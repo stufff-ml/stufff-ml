@@ -1,4 +1,4 @@
-package api
+package scheduler
 
 import (
 	"fmt"
@@ -18,8 +18,8 @@ import (
 	"github.com/stufff-ml/stufff-ml/internal/types"
 )
 
-// ScheduleEventsExportEndpoint schedules the export of new events
-func ScheduleEventsExportEndpoint(c *gin.Context) {
+// EventsExportEndpoint schedules the export of new events
+func EventsExportEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
 	topic := "scheduler.events.export"
 
@@ -46,8 +46,8 @@ func ScheduleEventsExportEndpoint(c *gin.Context) {
 	helper.StandardAPIResponse(ctx, c, topic, err)
 }
 
-// ScheduleModelTrainingEndpoint schedules periodic model training
-func ScheduleModelTrainingEndpoint(c *gin.Context) {
+// ModelTrainingEndpoint schedules periodic model training
+func ModelTrainingEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
 	topic := "scheduler.model.training"
 

@@ -1,4 +1,4 @@
-package api
+package callback
 
 import (
 	"github.com/gin-gonic/gin"
@@ -10,8 +10,8 @@ import (
 	"github.com/stufff-ml/stufff-ml/pkg/helper"
 )
 
-// ModelTrainingCallback is used to receive notifications on completed model training
-func ModelTrainingCallback(c *gin.Context) {
+// ModelTrainingEndpoint is used to receive notifications on completed model training
+func ModelTrainingEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
 	topic := "callback.model.training"
 
