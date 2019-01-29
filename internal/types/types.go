@@ -15,6 +15,8 @@ const (
 	DatastoreClientResources string = "CLIENT_RESOURCES"
 	// DatastoreExports collection EXPORTS
 	DatastoreExports string = "EXPORTS"
+	// DatastoreTrainingJobs collection TRAINING_JOBS
+	DatastoreTrainingJobs string = "TRAINING_JOBS"
 
 	// ShortCacheDuration default time to keep stuff in memory
 	ShortCacheDuration string = "1m"
@@ -130,6 +132,20 @@ type (
 		Token    string `json:"token"`
 		Revoked  bool   `json:"revoked"`
 		Expires  int64  `json:"expires"`
+
+		// internal metadata
+		Created int64 `json:"-"`
+	}
+
+	// TrainingJobDS represents a training job
+	TrainingJobDS struct {
+		JobID          string   `json:"job_id"`
+		ModelArguments []string `json:"args"`
+
+		JobStarted int64  `json:"started"`
+		JobEnded   int64  `json:"ended"`
+		Duration   int64  `json:"duration"`
+		Status     string `json:"status"`
 
 		// internal metadata
 		Created int64 `json:"-"`

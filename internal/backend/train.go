@@ -10,7 +10,9 @@ import (
 	"github.com/majordomusio/commons/pkg/errors"
 	"github.com/majordomusio/commons/pkg/gae/logger"
 	"github.com/majordomusio/commons/pkg/util"
+	"google.golang.org/appengine/datastore"
 
+	"github.com/stufff-ml/stufff-ml/internal/types"
 	"github.com/stufff-ml/stufff-ml/pkg/api"
 )
 
@@ -41,10 +43,6 @@ func TrainModel(ctx context.Context, modelID string) error {
 		return err
 	}
 
-	//
-	// Invoke Google ML API glue code
-	//
-
 	region := os.Getenv("REGION")
 	jobID := fmt.Sprintf("%s_%s_%d", model.Name, model.ClientID, util.Timestamp())
 	jobDir := fmt.Sprintf("gs://%s/%s/%s", api.DefaultModelsBucket, model.ClientID, jobID)
@@ -52,6 +50,25 @@ func TrainModel(ctx context.Context, modelID string) error {
 	callback := fmt.Sprintf("%s/%s/train?id=%s&job=%s", api.APIBaseURL, api.CallbackPrefix, model.ClientID, jobID)
 	uris := []string{fmt.Sprintf("gs://%s/packages/%s/%s.tar.gz", api.DefaultResourcesBucket, packageName, packageName)}
 	args := []string{"--client-id", model.ClientID, "--model-name", model.Name, "--job-id", jobID, "--callback", callback}
+
+	job := types.TrainingJobDS{
+		JobID:          jobID,
+		JobStarted:     util.Timestamp(),
+		ModelArguments: args,
+		Status:         "undefined",
+		Created:        util.Timestamp(),
+	}
+
+	key := TrainingJobKey(ctx, jobID)
+	_, err = datastore.Put(ctx, key, &job)
+	if err != nil {
+		logger.Warning(ctx, topic, "Could not create training job. Job ID='%s'", modelID)
+		return err
+	}
+
+	//
+	// Invoke Google ML API glue code
+	//
 
 	trainingInput := TrainingInput{
 		ScaleTier:      "BASIC",
@@ -67,7 +84,7 @@ func TrainModel(ctx context.Context, modelID string) error {
 	status, _ := InvokeFunction(ctx, "train_model", jobID, &trainingInput)
 
 	if status == http.StatusOK {
-		err = markTrained(ctx, clientID, name, util.Timestamp(), util.IncT(util.Timestamp(), model.TrainingSchedule))
+		err = MarkTrained(ctx, clientID, name, util.Timestamp(), util.IncT(util.Timestamp(), model.TrainingSchedule))
 		if err != nil {
 			logger.Warning(ctx, topic, "Could not update metadata. Model='%s'", modelID)
 			return err
@@ -79,4 +96,27 @@ func TrainModel(ctx context.Context, modelID string) error {
 	}
 
 	return nil
+}
+
+// MarkModelTrainingDone writes an export record back to the datastore with updated metadata
+func MarkModelTrainingDone(ctx context.Context, jobID, status string) error {
+	var job types.TrainingJobDS
+	topic := "backend.model.training.done"
+
+	key := TrainingJobKey(ctx, jobID)
+	err := datastore.Get(ctx, key, &job)
+	if err != nil {
+		logger.Warning(ctx, topic, "Could not load training data. JobID='%s'", jobID)
+		return err
+	}
+
+	job.JobEnded = util.Timestamp()
+	job.Status = status
+
+	_, err = datastore.Put(ctx, key, &job)
+	if err != nil {
+		logger.Warning(ctx, topic, "Could not update training data. JobID='%s'", jobID)
+	}
+
+	return err
 }

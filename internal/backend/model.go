@@ -89,7 +89,7 @@ func GetModel(ctx context.Context, clientID, name string) (*types.ModelDS, error
 }
 
 // MarkTrained writes an export record back to the datastore with updated metadata
-func markTrained(ctx context.Context, clientID, name string, trained, next int64) error {
+func MarkTrained(ctx context.Context, clientID, name string, trained, next int64) error {
 	var model types.ModelDS
 
 	key := ModelKey(ctx, clientID, name)

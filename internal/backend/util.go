@@ -38,6 +38,11 @@ func AuthorizationKey(ctx context.Context, token string) *datastore.Key {
 	return datastore.NewKey(ctx, types.DatastoreAuthorizations, token, 0, nil)
 }
 
+// TrainingJobKey key on collection TRAINING_JOBS
+func TrainingJobKey(ctx context.Context, k string) *datastore.Key {
+	return datastore.NewKey(ctx, types.DatastoreTrainingJobs, k, 0, nil)
+}
+
 // PredictionKeyString returns the composite key string for a prediction
 func PredictionKeyString(clientID, domain, entityID, revision string) string {
 	return clientID + "." + domain + "." + entityID + "." + revision
