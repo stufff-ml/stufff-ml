@@ -52,6 +52,7 @@ func TrainModel(ctx context.Context, modelID string) error {
 	args := []string{"--client-id", model.ClientID, "--model-name", model.Name, "--job-id", jobID, "--callback", callback}
 
 	job := types.TrainingJobDS{
+		ClientID:       clientID,
 		JobID:          jobID,
 		JobStarted:     util.Timestamp(),
 		ModelArguments: args,
@@ -111,6 +112,7 @@ func MarkModelTrainingDone(ctx context.Context, jobID, status string) error {
 	}
 
 	job.JobEnded = util.Timestamp()
+	job.Duration = job.JobEnded - job.JobStarted
 	job.Status = status
 
 	_, err = datastore.Put(ctx, key, &job)
