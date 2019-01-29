@@ -35,6 +35,9 @@ func init() {
 	// client
 	apiNamespace.GET("/client/create", api.ClientCreateEndpoint)
 
+	// model
+	apiNamespace.POST("/model/train", api.ModelTrainingEndpoint)
+
 	// Admin API. Namespace /_a
 	adminNamespace := router.Group(a.AdminAPIPrefix)
 	adminNamespace.GET("/init", api.InitEndpoint)

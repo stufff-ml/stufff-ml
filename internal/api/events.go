@@ -21,7 +21,7 @@ import (
 // GetEventsEndpoint retrieves all raw events within a given time range
 func GetEventsEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
-	topic := "events.get"
+	topic := "api.events.get"
 
 	// authenticate and authorize
 	token := helper.GetToken(ctx, c)
@@ -57,7 +57,7 @@ func GetEventsEndpoint(c *gin.Context) {
 // PostEventsEndpoint is for testing only
 func PostEventsEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
-	topic := "events.post"
+	topic := "api.events.post"
 
 	// authenticate and authorize
 	token := helper.GetToken(ctx, c)
