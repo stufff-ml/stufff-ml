@@ -45,7 +45,7 @@ func TrainModel(ctx context.Context, modelID string) error {
 
 	// update the model before building the training request
 	model.Version++
-	_, err = datastore.Put(ctx, ModelKey(ctx, clientID, name), &model)
+	_, err = datastore.Put(ctx, ModelKey(ctx, clientID, name), model)
 	if err != nil {
 		logger.Warning(ctx, topic, "Could not update the model. Model='%s'", modelID)
 		return err

@@ -74,7 +74,7 @@ func MarkTrained(ctx context.Context, clientID, name string, trained, next int64
 	model.LastTrained = trained
 	model.NextSchedule = next
 
-	_, err = datastore.Put(ctx, ModelKey(ctx, clientID, name), &model)
+	_, err = datastore.Put(ctx, ModelKey(ctx, clientID, name), model)
 	if err != nil {
 		return err
 	}
