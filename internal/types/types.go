@@ -140,7 +140,9 @@ type (
 	// TrainingJobDS represents a training job
 	TrainingJobDS struct {
 		ClientID       string   `json:"client_id"`
+		ModelID        string   `json:"model_id"`
 		JobID          string   `json:"job_id"`
+		Version        int      `json:"version"`
 		ModelArguments []string `json:"args"`
 
 		JobStarted int64  `json:"started"`

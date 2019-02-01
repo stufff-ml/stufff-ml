@@ -43,6 +43,15 @@ func TrainModel(ctx context.Context, modelID string) error {
 		return err
 	}
 
+	// update the model before building the training request
+	model.Version++
+	_, err = datastore.Put(ctx, ModelKey(ctx, clientID, name), &model)
+	if err != nil {
+		logger.Warning(ctx, topic, "Could not update the model. Model='%s'", modelID)
+		return err
+	}
+
+	// data for the training job
 	region := os.Getenv("REGION")
 	jobID := fmt.Sprintf("%s_%s_%d", model.Name, model.ClientID, util.Timestamp())
 	jobDir := fmt.Sprintf("gs://%s/%s/%s", api.DefaultModelsBucket, model.ClientID, jobID)
@@ -53,6 +62,8 @@ func TrainModel(ctx context.Context, modelID string) error {
 
 	job := types.TrainingJobDS{
 		ClientID:       clientID,
+		ModelID:        fmt.Sprintf("%s.%s", model.ClientID, model.Name),
+		Version:        model.Version,
 		JobID:          jobID,
 		JobStarted:     util.Timestamp(),
 		ModelArguments: args,
@@ -111,6 +122,7 @@ func MarkModelTrainingDone(ctx context.Context, jobID, status string) error {
 		return err
 	}
 
+	// update the job record first
 	job.JobEnded = util.Timestamp()
 	job.Duration = job.JobEnded - job.JobStarted
 	job.Status = status
@@ -118,6 +130,14 @@ func MarkModelTrainingDone(ctx context.Context, jobID, status string) error {
 	_, err = datastore.Put(ctx, key, &job)
 	if err != nil {
 		logger.Warning(ctx, topic, "Could not update training data. JobID='%s'", jobID)
+	}
+
+	if status == "ok" {
+		// schedule import
+		q := fmt.Sprintf("%s/import?id=%s", api.JobsPrefix, jobID)
+		ScheduleJob(ctx, types.BackgroundWorkQueue, q)
+
+		logger.Info(ctx, topic, "Scheduled import of training data. Query='%s'", q)
 	}
 
 	return err

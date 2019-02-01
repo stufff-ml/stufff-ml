@@ -60,6 +60,7 @@ func init() {
 	jobsNamespace.POST("/export", jobs.EventsExportEndpoint)
 	jobsNamespace.POST("/merge", jobs.EventsMergeEndpoint)
 	jobsNamespace.POST("/train", jobs.ModelTrainingEndpoint)
+	jobsNamespace.POST("/import", jobs.ModelImportEndpoint)
 
 	//
 	// default endpoints that are not part of the API namespace

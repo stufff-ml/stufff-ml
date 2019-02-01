@@ -2,11 +2,8 @@ package backend
 
 import (
 	"context"
-	"strings"
-	"time"
 
 	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/memcache"
 
 	"github.com/majordomusio/commons/pkg/gae/logger"
 	"github.com/majordomusio/commons/pkg/util"
@@ -37,7 +34,7 @@ func CreateDefaultModel(ctx context.Context, clientID string) (*types.ModelDS, e
 			{Key: "feature_wt_exp", Value: "0.08"},
 		},
 		Events:           []string{types.Default},
-		Version:          1,
+		Version:          0,
 		TrainingSchedule: 180,
 		NextSchedule:     0,
 		Created:          util.Timestamp(),
@@ -53,36 +50,14 @@ func CreateDefaultModel(ctx context.Context, clientID string) (*types.ModelDS, e
 	return &model, nil
 }
 
-// GetModel returns a model based on the clientID and domain
+// GetModel returns the latest version of a model based on the clientID and name
 func GetModel(ctx context.Context, clientID, name string) (*types.ModelDS, error) {
 	var model types.ModelDS
 
-	// lookup the model definition
-	key := "model." + strings.ToLower(clientID+"."+name)
-	_, err := memcache.Gob.Get(ctx, key, &model)
-
+	key := ModelKey(ctx, clientID, name)
+	err := datastore.Get(ctx, key, &model)
 	if err != nil {
-		var models []types.ModelDS
-		q := datastore.NewQuery(types.DatastoreModels).Filter("ClientID =", clientID).Filter("Name =", name).Order("-Revision")
-		_, err := q.GetAll(ctx, &models)
-		if err != nil {
-			return nil, err
-		}
-
-		if len(models) == 0 {
-			return nil, err
-		}
-
-		model = models[0]
-		if err == nil {
-			cache := memcache.Item{}
-			cache.Key = key
-			cache.Object = model
-			cache.Expiration, _ = time.ParseDuration(types.ShortCacheDuration)
-			memcache.Gob.Set(ctx, &cache)
-		} else {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	return &model, nil
@@ -90,10 +65,8 @@ func GetModel(ctx context.Context, clientID, name string) (*types.ModelDS, error
 
 // MarkTrained writes an export record back to the datastore with updated metadata
 func MarkTrained(ctx context.Context, clientID, name string, trained, next int64) error {
-	var model types.ModelDS
 
-	key := ModelKey(ctx, clientID, name)
-	err := datastore.Get(ctx, key, &model)
+	model, err := GetModel(ctx, clientID, name)
 	if err != nil {
 		return err
 	}
@@ -101,14 +74,10 @@ func MarkTrained(ctx context.Context, clientID, name string, trained, next int64
 	model.LastTrained = trained
 	model.NextSchedule = next
 
-	_, err = datastore.Put(ctx, key, &model)
+	_, err = datastore.Put(ctx, ModelKey(ctx, clientID, name), &model)
 	if err != nil {
 		return err
 	}
-
-	// invalidate the cache
-	ckey := "model." + strings.ToLower(clientID+"."+name)
-	err = memcache.Delete(ctx, ckey)
 
 	return err
 }

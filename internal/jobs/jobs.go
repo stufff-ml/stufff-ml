@@ -72,7 +72,7 @@ func EventsMergeEndpoint(c *gin.Context) {
 	helper.StandardAPIResponse(ctx, c, topic, err)
 }
 
-// ModelTrainingEndpoint schedules the training of a model
+// ModelTrainingEndpoint triggers the training of a model
 func ModelTrainingEndpoint(c *gin.Context) {
 	ctx := appengine.NewContext(c.Request)
 	topic := "jobs.model.training"
@@ -94,4 +94,20 @@ func ModelTrainingEndpoint(c *gin.Context) {
 	}
 
 	helper.StandardAPIResponse(ctx, c, topic, err)
+}
+
+// ModelImportEndpoint imports the result of a training job
+func ModelImportEndpoint(c *gin.Context) {
+	ctx := appengine.NewContext(c.Request)
+	topic := "jobs.model.import"
+
+	// extract values
+	jobID := c.Query("id")
+	if jobID == "" {
+		logger.Warning(ctx, topic, "Empty job ID")
+		helper.StandardAPIResponse(ctx, c, topic, nil)
+		return
+	}
+
+	helper.StandardAPIResponse(ctx, c, topic, nil)
 }

@@ -32,10 +32,10 @@ func EventsExportEndpoint(c *gin.Context) {
 	if err == nil {
 		if len(exports) > 0 {
 			for i := range exports {
-				exportID := fmt.Sprintf("%s.%s", exports[i].ClientID, exports[i].Event)
-				backend.ScheduleJob(ctx, types.BackgroundWorkQueue, a.JobsPrefix+"/export?id="+exportID)
+				q := fmt.Sprintf("%s/export?id=%s.%s", a.JobsPrefix, exports[i].ClientID, exports[i].Event)
+				backend.ScheduleJob(ctx, types.BackgroundWorkQueue, q)
 
-				logger.Info(ctx, topic, "Scheduled export of new events. Export='%s'", exportID)
+				logger.Info(ctx, topic, "Scheduled export of new events. Queryt='%s'", q)
 			}
 		} else {
 			logger.Info(ctx, topic, "Nothing scheduled")
@@ -60,10 +60,10 @@ func ModelTrainingEndpoint(c *gin.Context) {
 	if err == nil {
 		if len(models) > 0 {
 			for i := range models {
-				modelID := fmt.Sprintf("%s.%s", models[i].ClientID, models[i].Name)
-				backend.ScheduleJob(ctx, types.BackgroundWorkQueue, a.JobsPrefix+"/train?id="+modelID)
+				q := fmt.Sprintf("%s/train?id=%s.%s", a.JobsPrefix, models[i].ClientID, models[i].Name)
+				backend.ScheduleJob(ctx, types.BackgroundWorkQueue, q)
 
-				logger.Info(ctx, topic, "Scheduled model training. Model='%s'", modelID)
+				logger.Info(ctx, topic, "Scheduled model training. Query='%s'", q)
 			}
 		} else {
 			logger.Info(ctx, topic, "Nothing scheduled")

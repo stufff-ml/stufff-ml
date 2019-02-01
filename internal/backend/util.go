@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -78,7 +79,7 @@ func InvokeFunction(ctx context.Context, function, reqID string, payload interfa
 	b, _ := json.Marshal(r)
 
 	client := urlfetch.Client(ctx)
-	client.Timeout = 55000
+	client.Timeout = time.Duration(50 * time.Second)
 
 	req, _ := http.NewRequest("POST", uri, bytes.NewBuffer(b))
 	req.Header.Add("Content-Type", "application/json")
