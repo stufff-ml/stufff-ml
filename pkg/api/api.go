@@ -16,15 +16,20 @@ type (
 
 	// Prediction returns a set of predictions
 	Prediction struct {
-		EntityID string      `json:"entity_id" binding:"required"`
-		Domain   string      `json:"domain" binding:"required"`
-		Items    []ItemScore `json:"items"`
+		ClientID         string      `json:"-"`
+		ModelID          string      `json:"-"`
+		EntityType       string      `json:"entity_type"`
+		EntityID         string      `json:"entity_id" binding:"required"`
+		TargetEntityType string      `json:"target_entity_type"`
+		Version          int         `json:"version"`
+		Items            []ItemScore `datastore:",noindex" json:"items"`
+		Created          int64       `json:"-"`
 	}
 
 	// ItemScore holds a single item recommendation and its score
 	ItemScore struct {
-		Item  string  `json:"item"`
-		Score float64 `json:"score"`
+		EntityID string  `json:"entity_id"`
+		Score    float64 `json:"score"`
 	}
 
 	// ClientResource returns a new client resource and its access token

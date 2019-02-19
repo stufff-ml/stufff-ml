@@ -30,8 +30,9 @@ func PostPredictionsEndpoint(c *gin.Context) {
 	if err == nil {
 		for i := range predictions {
 			prediction := predictions[i]
+			prediction.ClientID = clientID
 
-			err = backend.StorePrediction(ctx, clientID, &prediction)
+			err = backend.StorePrediction(ctx, &prediction)
 			if err != nil {
 				helper.StandardAPIResponse(ctx, c, topic, err)
 				return

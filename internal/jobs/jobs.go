@@ -86,11 +86,8 @@ func ModelTrainingEndpoint(c *gin.Context) {
 	}
 
 	err := backend.TrainModel(ctx, modelID)
-
 	if err != nil {
 		logger.Warning(ctx, topic, "Issues submitting model for training. Model='%s'. Err=%s", modelID, err.Error())
-		helper.StandardAPIResponse(ctx, c, topic, err)
-		return
 	}
 
 	helper.StandardAPIResponse(ctx, c, topic, err)
@@ -109,5 +106,10 @@ func ModelImportEndpoint(c *gin.Context) {
 		return
 	}
 
-	helper.StandardAPIResponse(ctx, c, topic, nil)
+	err := backend.ImportPredictions(ctx, jobID)
+	if err != nil {
+		logger.Warning(ctx, topic, "Issues importing predictions. Job ID='%s'. Err=%s", jobID, err.Error())
+	}
+
+	helper.StandardAPIResponse(ctx, c, topic, err)
 }

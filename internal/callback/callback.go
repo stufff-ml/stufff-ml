@@ -1,6 +1,8 @@
 package callback
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 
 	"google.golang.org/appengine"
@@ -8,6 +10,8 @@ import (
 	"github.com/majordomusio/commons/pkg/gae/logger"
 
 	"github.com/stufff-ml/stufff-ml/internal/backend"
+	"github.com/stufff-ml/stufff-ml/internal/types"
+	"github.com/stufff-ml/stufff-ml/pkg/api"
 	"github.com/stufff-ml/stufff-ml/pkg/helper"
 )
 
@@ -36,6 +40,14 @@ func ModelTrainingEndpoint(c *gin.Context) {
 		logger.Warning(ctx, topic, "Missing status")
 		helper.StandardAPIResponse(ctx, c, topic, nil)
 		return
+	}
+
+	if status == "ok" {
+		// schedule import
+		q := fmt.Sprintf("%s/import?id=%s", api.JobsPrefix, jobID)
+		backend.ScheduleJob(ctx, types.BackgroundWorkQueue, q)
+
+		logger.Info(ctx, topic, "Scheduled import of training data. Query='%s'", q)
 	}
 
 	err := backend.MarkModelTrainingDone(ctx, jobID, status)

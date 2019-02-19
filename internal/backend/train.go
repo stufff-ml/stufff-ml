@@ -132,13 +132,5 @@ func MarkModelTrainingDone(ctx context.Context, jobID, status string) error {
 		logger.Warning(ctx, topic, "Could not update training data. JobID='%s'", jobID)
 	}
 
-	if status == "ok" {
-		// schedule import
-		q := fmt.Sprintf("%s/import?id=%s", api.JobsPrefix, jobID)
-		ScheduleJob(ctx, types.BackgroundWorkQueue, q)
-
-		logger.Info(ctx, topic, "Scheduled import of training data. Query='%s'", q)
-	}
-
 	return err
 }

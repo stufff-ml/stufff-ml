@@ -81,7 +81,6 @@ func StoreEvent(ctx context.Context, clientID string, event *api.Event) error {
 
 	key := datastore.NewIncompleteKey(ctx, types.DatastoreEvents, nil)
 	_, err := datastore.Put(ctx, key, &e)
-
 	if err != nil {
 		logger.Error(ctx, topic, err.Error())
 	}

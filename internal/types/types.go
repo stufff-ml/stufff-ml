@@ -1,7 +1,5 @@
 package types
 
-import "github.com/stufff-ml/stufff-ml/pkg/api"
-
 const (
 	// DatastoreEvents collection EVENTS
 	DatastoreEvents string = "EVENTS"
@@ -58,19 +56,6 @@ type (
 		TargetEntityID   string   `json:"target_entity_id,omitempty"`
 		Properties       []string `datastore:",noindex" json:"properties,omitempty"`
 		Timestamp        int64    `json:"timestamp"`
-
-		// internal metadata
-		Created int64 `json:"-"`
-	}
-
-	// PredictionDS stores the materialized predictions for fast retrieval
-	PredictionDS struct {
-		ClientID string `json:"client_id"`
-		Domain   string `json:"domain"`
-		EntityID string `json:"entity_id"`
-		Version  int    `json:"version"`
-
-		Items []api.ItemScore `datastore:",noindex" json:"items"`
 
 		// internal metadata
 		Created int64 `json:"-"`
