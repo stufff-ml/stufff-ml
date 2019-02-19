@@ -9,6 +9,7 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/majordomusio/commons/pkg/gae/logger"
 	"github.com/majordomusio/commons/pkg/util"
+
 	"github.com/stufff-ml/stufff-ml/internal/types"
 	"github.com/stufff-ml/stufff-ml/pkg/api"
 	"google.golang.org/api/iterator"
@@ -16,18 +17,45 @@ import (
 )
 
 // GetPrediction returns a prediction based on a specified model
-func GetPrediction(ctx context.Context, clientID string, req *api.Prediction) (*api.Prediction, error) {
+func GetPrediction(ctx context.Context, clientID, name, id, entityType, targetEntityType string, limit int) (*api.Prediction, error) {
+	topic := "backend.predictions.get"
 
-	// lookup the prediction
-	p := api.Prediction{}
+	modelID := clientID + "." + name
+	model, err := GetModel(ctx, clientID, name)
+	if err != nil {
+		logger.Warning(ctx, topic, "Could not load model. ModelID='%s'", modelID)
+		return nil, err
+	}
 
-	return &p, nil
-}
+	logger.Info(ctx, topic, "ClientID=%s,ModelID=%s,EntityID=%s,EntityType=%s,TargetEntityType=%s", clientID, modelID, id, entityType, targetEntityType)
 
-// StorePrediction stores a materialized prediction in the datastore
-func StorePrediction(ctx context.Context, prediction *api.Prediction) error {
+	var predictions []api.Prediction
+	var q *datastore.Query
 
-	return nil
+	q = datastore.NewQuery(types.DatastorePredictions).Filter("ModelID =", modelID).Filter("EntityType =", entityType).Filter("EntityID =", id).Filter("TargetEntityType =", targetEntityType).Filter("Version =", model.Version)
+	_, err = q.GetAll(ctx, &predictions)
+	if err != nil {
+		return nil, err
+	}
+
+	pred := api.Prediction{
+		ClientID:         clientID,
+		EntityType:       entityType,
+		EntityID:         id,
+		TargetEntityType: targetEntityType,
+		Version:          model.Version,
+	}
+	if len(predictions) != 0 {
+		if limit > 0 {
+			pred.Items = predictions[0].Items[:limit]
+		} else {
+			pred.Items = predictions[0].Items
+		}
+	} else {
+		pred.Items = make([]api.ItemScore, 0)
+	}
+
+	return &pred, nil
 }
 
 // ImportPredictions imports the results of a training job

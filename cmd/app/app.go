@@ -37,6 +37,7 @@ func init() {
 
 	// model
 	apiNamespace.POST("/model/train", api.ModelTrainingEndpoint)
+	apiNamespace.GET("/model/predict", api.GetPredictionEndpoint)
 
 	// Admin API. Namespace /_a
 	adminNamespace := router.Group(a.AdminAPIPrefix)
@@ -71,8 +72,3 @@ func init() {
 	// ready, start taking requests
 	http.Handle("/", router)
 }
-
-// /_i/1/batch
-//batchNamespace := router.Group(a.BatchPrefix)
-//batchNamespace.POST("/predictions", api.PostPredictionsEndpoint)
-// apiNamespace.POST("/predict", api.GetPredictionEndpoint)

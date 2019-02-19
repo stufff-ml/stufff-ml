@@ -43,14 +43,6 @@ func TrainModel(ctx context.Context, modelID string) error {
 		return err
 	}
 
-	// update the model before building the training request
-	model.Version++
-	_, err = datastore.Put(ctx, ModelKey(ctx, clientID, name), model)
-	if err != nil {
-		logger.Warning(ctx, topic, "Could not update the model. Model='%s'", modelID)
-		return err
-	}
-
 	// data for the training job
 	region := os.Getenv("REGION")
 	jobID := fmt.Sprintf("%s_%s_%d", model.Name, model.ClientID, util.Timestamp())
@@ -63,7 +55,7 @@ func TrainModel(ctx context.Context, modelID string) error {
 	job := types.TrainingJobDS{
 		ClientID:       clientID,
 		ModelID:        fmt.Sprintf("%s.%s", model.ClientID, model.Name),
-		Version:        model.Version,
+		Version:        model.Version + 1,
 		JobID:          jobID,
 		JobStarted:     util.Timestamp(),
 		ModelArguments: args,
@@ -130,6 +122,21 @@ func MarkModelTrainingDone(ctx context.Context, jobID, status string) error {
 	_, err = datastore.Put(ctx, key, &job)
 	if err != nil {
 		logger.Warning(ctx, topic, "Could not update training data. JobID='%s'", jobID)
+	}
+
+	// increment the model version
+	parts := strings.Split(job.ModelID, ".")
+	model, err := GetModel(ctx, job.ClientID, parts[1])
+	if err != nil {
+		logger.Warning(ctx, topic, "Model not found. Model='%s'", job.ModelID)
+		return err
+	}
+
+	model.Version = job.Version
+	_, err = datastore.Put(ctx, ModelKey(ctx, job.ClientID, parts[1]), model)
+	if err != nil {
+		logger.Warning(ctx, topic, "Could not update the model. Model='%s'", job.ModelID)
+		return err
 	}
 
 	return err
